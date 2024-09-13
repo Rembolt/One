@@ -13,7 +13,7 @@ namespace one {
 
 	private:
 		Window window{ WIDTH, HEIGHT, "One" };
-		App app;
+		App app{};
 
 		void initOne();
 		void loop();

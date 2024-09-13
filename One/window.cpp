@@ -11,7 +11,10 @@ namespace one {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); //will take out later(needs work)
 
-        window = glfwCreateWindow(WIDTH, HEIGHT, windowName.c_str(), nullptr, nullptr);//3rd parameter allas to set a specific monitor to open window on
+        //3rd parameter allas to set a specific monitor to open window on
+        window = glfwCreateWindow(WIDTH, HEIGHT, windowName.c_str(), nullptr, nullptr);
+
+        std::cerr << "window has initiated \n";
     }
 
     bool Window::shouldClose() {

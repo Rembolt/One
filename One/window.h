@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include <string>
+#include <stdexcept>
+#include <iostream>
 namespace one {
 
 	class Window {
@@ -15,6 +17,7 @@ namespace one {
 		Window& operator=(const Window&) = delete;
 		
 		bool shouldClose();
+
 
 	private:
 		void initWindow();

@@ -11,8 +11,7 @@ namespace one {
     
 
     void One::initOne() {
-
-
+        std::cerr << "one has initiated \n";
     }
 
     void One::loop() {
@@ -22,6 +21,6 @@ namespace one {
     };
 
     void One::end() {
-
+        
     };
 }
