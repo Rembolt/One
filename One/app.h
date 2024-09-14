@@ -2,7 +2,7 @@
 
 #include "window.h"
 #include <vector>
-#include <map>
+#include <optional>
 
 namespace one {
 
@@ -34,11 +34,24 @@ namespace one {
 		int rateGraphicsDeviceSuitability(VkPhysicalDevice device);
 
 		
+
+		
 		//Creating Vulkan Instance
 		VkInstance instance;
 
 		//Picking Graphics card device
 		VkPhysicalDevice physicalGraphicsDevice;
+
+		//Queue families
+		struct QueueFamilyIndices {
+			std::optional<uint32_t> graphicsFamily;//adds has_value() to int
+
+			bool isComplete() {
+				//if flag supports graphics bit it will have the indice of it
+				return graphicsFamily.has_value();
+			}
+		};
+		App::QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);
 
 	};
 }

@@ -1,4 +1,5 @@
 #include "app.h"
+#include <map>
 
 namespace one {
 
@@ -153,11 +154,43 @@ namespace one {
 		/*if (!graphicsDeviceFeatures.geometryShader) {
 			return 0;
 		}*/
+		QueueFamilyIndices indices = findQueueFamilies(graphicsDevice);
+		if (!indices.isComplete()) {
+			std::cerr << "this graphics device " << graphicsDeviceProperties.deviceID << " does not support the queues neccessary for the vulkan commands used!\n";
+			return 0;
+		}
 
 		std::cerr << "the device: "<< graphicsDeviceProperties.deviceID << " from vendor: " << graphicsDeviceProperties.vendorID << " had a score of: " << score << "\n";
 
 		return score;
-		//ended here
+	}
+
+	App::QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice graphicsDevice) {
+		QueueFamilyIndices indices;
+		//on vulkan any command sent to vulkan is submitted to a queue
+		//there is different types of queues with different sizes
+		//this checks(for now) for any queues that support graphics
+
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(graphicsDevice, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(graphicsDevice, &queueFamilyCount, queueFamilies.data());
+
+		int i = 0;
+		//marks the flag indice of the 
+		//queueFamily that has atleast the graphics bit
+		for (const auto& queueFamily : queueFamilies) {
+			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				indices.graphicsFamily = i;
+			}
+			if (indices.isComplete()) {
+				break;
+			}
+			i++;
+		}
+
+		return indices;
 	}
 
 	App::~App() {
