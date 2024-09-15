@@ -21,6 +21,15 @@ namespace one {
         return glfwWindowShouldClose(window);
     }
 
+    void Window::createSurface(VkInstance& instance, VkSurfaceKHR& surface) {// a surface is what connects vulkan to the window, 
+        //it holds the images and the window takes car of making it for each 
+        //type of system.
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != 
+            VK_SUCCESS) {
+            throw std::runtime_error("failed to create window surface!");
+        }
+    }
+
     Window::~Window() {
         glfwDestroyWindow(window);
         glfwTerminate();

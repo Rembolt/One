@@ -10,12 +10,9 @@ namespace one {
 
 	public:
 
-		App();
+		App(Window& window);
 		~App();
 
-		const std::vector<const char*> validationLayers = {//if I ever need to debug other platforms might need to add other validations
-			"VK_LAYER_KHRONOS_validation"
-		};
 
 		//check if c++ is compiling in anything other than debug mode
 		#ifdef NDEBUG
@@ -32,10 +29,9 @@ namespace one {
 		bool checkValidationLayerSupport();
 		void pickPhysicalGraphicsDevice();
 		int rateGraphicsDeviceSuitability(VkPhysicalDevice device);
+		void createLogicalDevice();
+		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-		
-
-		
 		//Creating Vulkan Instance
 		VkInstance instance;
 
@@ -44,14 +40,37 @@ namespace one {
 
 		//Queue families
 		struct QueueFamilyIndices {
-			std::optional<uint32_t> graphicsFamily;//adds has_value() to int
+			//opitional adds has_value() to int
+			std::optional<uint32_t> graphicsFamily;
+			std::optional<uint32_t> presentationFamily;//make sure queues can draw on surface
+
 
 			bool isComplete() {
 				//if flag supports graphics bit it will have the indice of it
-				return graphicsFamily.has_value();
+				return graphicsFamily.has_value() && presentationFamily.has_value();
 			}
 		};
 		App::QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);
 
+		//Creating Logical device
+		VkDevice device;
+		VkQueue graphicsQueue;
+		VkQueue presentationQueue;
+
+		//Surface
+		VkSurfaceKHR surface;
+
+		//Window pointer
+		Window& m_window;
+
+		//Validation layers:
+		const std::vector<const char*> validationLayers = {//if I ever need to debug other platforms might need to add other validations
+			"VK_LAYER_KHRONOS_validation"
+		};
+
+		//Device Extensions:
+		const std::vector<const char*> deviceExtensions = {
+			"VK_KHR_swapchain"
+		};
 	};
 }

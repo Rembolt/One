@@ -1,14 +1,16 @@
 #include "app.h"
 #include <map>
+#include <set>
 
 namespace one {
 
-	App::App() {
+	App::App(Window& window): m_window(window) {
 		initApp();
 	}
 
 	void App::initApp() {
 		createInstance();
+		m_window.createSurface(instance,surface);
 		pickPhysicalGraphicsDevice();
 
 		std::cerr << "vulkan app has initiated \n";
@@ -142,14 +144,6 @@ namespace one {
 
 		int score = 0;
 
-		// Discrete GPUs have a significant performance advantage
-		if (graphicsDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-			score += 1000;
-		}
-
-		// Maximum possible size of textures affects graphics quality
-		score += graphicsDeviceProperties.limits.maxImageDimension2D;
-
 		// Exemple Application can't function without geometry shaders
 		/*if (!graphicsDeviceFeatures.geometryShader) {
 			return 0;
@@ -159,6 +153,17 @@ namespace one {
 			std::cerr << "this graphics device " << graphicsDeviceProperties.deviceID << " does not support the queues neccessary for the vulkan commands used!\n";
 			return 0;
 		}
+		if (!checkDeviceExtensionSupport(graphicsDevice)) {
+			std::cerr << "this graphics device " << graphicsDeviceProperties.deviceID << " does not support all extensions necessary to run program!\n";
+			return 0;
+		}
+
+		// Discrete GPUs have a significant performance advantage
+		score += 1000 * (graphicsDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
+		//if both are same performance is faster
+		score += 1000 * (indices.graphicsFamily == indices.presentationFamily);
+		// Maximum possible size of textures affects graphics quality
+		score += graphicsDeviceProperties.limits.maxImageDimension2D;
 
 		std::cerr << "the device: "<< graphicsDeviceProperties.deviceID << " from vendor: " << graphicsDeviceProperties.vendorID << " had a score of: " << score << "\n";
 
@@ -179,10 +184,16 @@ namespace one {
 
 		int i = 0;
 		//marks the flag indice of the 
-		//queueFamily that has atleast the graphics bit
 		for (const auto& queueFamily : queueFamilies) {
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				//queueFamily that has atleast the graphics bit
 				indices.graphicsFamily = i;
+			}
+			//if presentationsupport is available on this queue being checked
+			VkBool32 presentationSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(graphicsDevice, i, surface, &presentationSupport);
+			if (presentationSupport) {
+				indices.presentationFamily = i;
 			}
 			if (indices.isComplete()) {
 				break;
@@ -193,9 +204,83 @@ namespace one {
 		return indices;
 	}
 
+	void App::createLogicalDevice() {
+		QueueFamilyIndices indices = findQueueFamilies(physicalGraphicsDevice);
+
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = {
+			indices.graphicsFamily.value(),
+			indices.presentationFamily.value()
+		};
+
+		float queuePriority = 1.0f;//priority of which queue to prioritize
+		for (uint32_t queueFamily : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queuePriority -= 0.01f;//decreases priority as you go down the list
+			//THIS MIGHT CAUSE PROBLEMS
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
+
+		VkPhysicalDeviceFeatures deviceFeatures{};//none for now
+
+		VkDeviceCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
+		createInfo.pEnabledFeatures = &deviceFeatures;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		//ended here
+		if (enableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			createInfo.ppEnabledLayerNames = validationLayers.data();
+		}
+		else {
+			createInfo.enabledLayerCount = 0;
+		}
+
+		if (vkCreateDevice(physicalGraphicsDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create logical device!");
+		}
+
+		//beacause only one queueFamily and only one queue on the family
+		//we will onyly do this once for now
+		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+		vkGetDeviceQueue(device, indices.presentationFamily.value(), 0, &presentationQueue);
+	}
+
+	bool App::checkDeviceExtensionSupport(VkPhysicalDevice graphicsDevice) {
+
+		uint32_t extensionCount;
+		vkEnumerateDeviceExtensionProperties(graphicsDevice, nullptr, &extensionCount, nullptr);
+
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(graphicsDevice, nullptr, &extensionCount, availableExtensions.data());
+
+		for (const char* extensionName : deviceExtensions) {
+			bool extensionFound = false;
+
+			for (const auto& extension : availableExtensions) {
+				if (strcmp(extensionName, extension.extensionName) == 0) {
+					extensionFound = true;
+					break;
+				}
+			}
+
+			if (!extensionFound) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	App::~App() {
-
+		vkDestroyDevice(device, nullptr);
+		vkDestroySurfaceKHR(instance, surface, nullptr);
 		vkDestroyInstance(instance, nullptr);//pointer to callback
-
 	}
 }

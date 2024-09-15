@@ -17,7 +17,7 @@ namespace one {
 		Window& operator=(const Window&) = delete;
 		
 		bool shouldClose();
-
+		void createSurface(VkInstance& instance, VkSurfaceKHR& surface);
 
 	private:
 		void initWindow();
