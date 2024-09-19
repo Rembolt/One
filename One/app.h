@@ -31,6 +31,7 @@ namespace one {
 		int rateGraphicsDeviceSuitability(VkPhysicalDevice device);
 		void createLogicalDevice();
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+		void createSwapChain();
 
 		//Creating Vulkan Instance
 		VkInstance instance;
@@ -50,10 +51,21 @@ namespace one {
 				return graphicsFamily.has_value() && presentationFamily.has_value();
 			}
 		};
-		App::QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);
+		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);
+
+		VkSwapchainKHR swapChain;
+		//SwapChain details
+		struct SwapChainSupportDetails {
+			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
+			std::vector<VkSurfaceFormatKHR> formats; // pixel format and color space
+			std::vector<VkPresentModeKHR> presentationModes;
+		};
+		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice graphicsDevice);
+		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		
 
 		//Creating Logical device
-		VkDevice device;
+		VkDevice logicalDevice;
 		VkQueue graphicsQueue;
 		VkQueue presentationQueue;
 
@@ -70,7 +82,7 @@ namespace one {
 
 		//Device Extensions:
 		const std::vector<const char*> deviceExtensions = {
-			"VK_KHR_swapchain"
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 	};
 }
