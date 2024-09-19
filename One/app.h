@@ -13,6 +13,8 @@ namespace one {
 		App(Window& window);
 		~App();
 
+		App(const App&) = delete;//cant pass by reference
+		App& operator=(const App&) = delete;//cant copy by reference;
 
 		//check if c++ is compiling in anything other than debug mode
 		#ifdef NDEBUG
@@ -20,6 +22,11 @@ namespace one {
 		#else
 				const bool enableValidationLayers = true;
 		#endif
+		
+		//SwapChain 
+		std::vector<VkImage> swapChainImages;
+
+		//Image views
 
 
 	private:
@@ -32,6 +39,7 @@ namespace one {
 		void createLogicalDevice();
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 		void createSwapChain();
+		void createImageViews();
 
 		//Creating Vulkan Instance
 		VkInstance instance;
@@ -51,18 +59,7 @@ namespace one {
 				return graphicsFamily.has_value() && presentationFamily.has_value();
 			}
 		};
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);
-
-		VkSwapchainKHR swapChain;
-		//SwapChain details
-		struct SwapChainSupportDetails {
-			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
-			std::vector<VkSurfaceFormatKHR> formats; // pixel format and color space
-			std::vector<VkPresentModeKHR> presentationModes;
-		};
-		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice graphicsDevice);
-		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-		
+		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);	
 
 		//Creating Logical device
 		VkDevice logicalDevice;
@@ -84,5 +81,20 @@ namespace one {
 		const std::vector<const char*> deviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
+
+		//SwapChain details
+		VkSwapchainKHR swapChain;
+		VkFormat swapChainImageFormat;
+		VkExtent2D swapChainExtent;
+		struct SwapChainSupportDetails {
+			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
+			std::vector<VkSurfaceFormatKHR> formats; // pixel format and color space
+			std::vector<VkPresentModeKHR> presentationModes;
+		};
+		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice graphicsDevice);
+		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+		//Image views(kind of like perspectives of image), depth, volumetric(?), etc.
+		std::vector<VkImageView> swapChainImageViews;
 	};
 }
