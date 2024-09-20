@@ -11,7 +11,9 @@ namespace one {
 	public:
 
 		App(Window& window);
+		void initApp();
 		~App();
+		
 
 		App(const App&) = delete;//cant pass by reference
 		App& operator=(const App&) = delete;//cant copy by reference;
@@ -30,8 +32,6 @@ namespace one {
 
 
 	private:
-
-		void initApp();
 		void createInstance();
 		bool checkValidationLayerSupport();
 		void pickPhysicalGraphicsDevice();

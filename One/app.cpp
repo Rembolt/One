@@ -8,7 +8,7 @@
 namespace one {
 
 	App::App(Window& window): m_window(window) {
-		initApp();
+		
 	}
 
 	void App::initApp() {

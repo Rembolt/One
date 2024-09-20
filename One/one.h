@@ -2,6 +2,7 @@
 
 #include "window.h"
 #include "app.h"
+#include "pipeline.h"
 
 namespace one {
 	class One {
@@ -14,6 +15,7 @@ namespace one {
 	private:
 		Window window{ WIDTH, HEIGHT, "One" };
 		App app{ window };
+		Pipeline pipeline{};
 
 		void initOne();
 		void loop();
