@@ -15,7 +15,7 @@ namespace one {
 	private:
 		Window window{ WIDTH, HEIGHT, "One" };
 		App app{ window };
-		Pipeline pipeline{};
+		Pipeline pipeline{ app };
 
 		void initOne();
 		void loop();

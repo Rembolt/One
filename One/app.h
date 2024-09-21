@@ -24,9 +24,13 @@ namespace one {
 		#else
 				const bool enableValidationLayers = true;
 		#endif
+
+		//Creating Logical device
+		VkDevice logicalDevice;
 		
 		//SwapChain 
 		std::vector<VkImage> swapChainImages;
+		VkExtent2D swapChainExtent;
 
 		//Image views
 
@@ -62,7 +66,6 @@ namespace one {
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);	
 
 		//Creating Logical device
-		VkDevice logicalDevice;
 		VkQueue graphicsQueue;
 		VkQueue presentationQueue;
 
@@ -85,7 +88,6 @@ namespace one {
 		//SwapChain details
 		VkSwapchainKHR swapChain;
 		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
 		struct SwapChainSupportDetails {
 			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
 			std::vector<VkSurfaceFormatKHR> formats; // pixel format and color space
