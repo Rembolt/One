@@ -7,13 +7,13 @@
 
 namespace one {
 
-	App::App(Window& window): m_window(window) {
+	App::App(Window& window): _window(window) {
 		
 	}
 
 	void App::initApp() {
 		createInstance();
-		m_window.createSurface(instance,surface);
+		_window.createSurface(instance,surface);
 		pickPhysicalGraphicsDevice();
 		createLogicalDevice();
 		//accessed publicly
@@ -351,7 +351,7 @@ namespace one {
 			return capabilities.currentExtent;
 		}else {
 			int width, height;
-			m_window.getFramebufferSize(width,height);
+			_window.getFramebufferSize(width,height);
 
 			VkExtent2D actualExtent = {
 				static_cast<uint32_t>(width),

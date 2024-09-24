@@ -31,6 +31,7 @@ namespace one {
 		//SwapChain 
 		std::vector<VkImage> swapChainImages;
 		VkExtent2D swapChainExtent;
+		VkFormat swapChainImageFormat;
 
 		//Image views
 
@@ -73,7 +74,7 @@ namespace one {
 		VkSurfaceKHR surface;
 
 		//Window pointer
-		Window& m_window;
+		Window& _window;
 
 		//Validation layers:
 		const std::vector<const char*> validationLayers = {//if I ever need to debug other platforms might need to add other validations
@@ -87,7 +88,6 @@ namespace one {
 
 		//SwapChain details
 		VkSwapchainKHR swapChain;
-		VkFormat swapChainImageFormat;
 		struct SwapChainSupportDetails {
 			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
 			std::vector<VkSurfaceFormatKHR> formats; // pixel format and color space

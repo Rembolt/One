@@ -9,11 +9,14 @@ namespace one {
 		Pipeline(App& app);
 		~Pipeline();
 		void createPipeline();
+		void createRenderPass();
+
+		VkPipelineLayout pipelineLayout;
 
 	private:
 
-		App& m_app;
-		VkDevice& logicalDevice = m_app.logicalDevice;
+		App& _app;
+		VkDevice& logicalDevice = _app.logicalDevice;
 		VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
 
 	};

@@ -2,7 +2,7 @@
 #include <fstream>
 
 namespace one {
-	Pipeline::Pipeline(App& app): m_app(app) {}
+	Pipeline::Pipeline(App& app): _app(app) {}
 
 	//read binary data from file
 	static std::vector<char> readFile(const std::string& filename) {
@@ -121,9 +121,78 @@ namespace one {
 		rasterizer.depthBiasClamp = 0.0f;
 		rasterizer.depthBiasSlopeFactor = 0.0f;
 		//*************************************************************************************
-		//ended here(Multisampling)
+		//Multisampling:one way to antialising - combining multiple poligon that rasterize to same pixel
+		//
+		VkPipelineMultisampleStateCreateInfo multisampling{};
+		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		multisampling.sampleShadingEnable = VK_FALSE;
+		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		multisampling.minSampleShading = 1.0f;
+		multisampling.pSampleMask = nullptr;
+		multisampling.alphaToCoverageEnable = VK_FALSE;
+		multisampling.alphaToOneEnable = VK_FALSE;
+		//*************************************************************************************
+		//depth and stencil testing - VkPipelineDepthStencilStateCreateInfo
+		//dont have one so pass nullptr;
+		//*************************************************************************************
+		//color blending - either mix old and new - or combine using bitwise operation (check vulkan spec)
+		// for multiple frame buffers, there is per attached state color blend
+		//and has to set up second one global color / for now just one frambe buffer so
+		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.blendEnable = VK_FALSE;
+		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;	
+		/*pseudocode to understand what above does
+		if (blendEnable) {
+			finalColor.rgb = (srcColorBlendFactor * newColor.rgb) < colorBlendOp > (dstColorBlendFactor * oldColor.rgb);
+			finalColor.a = (srcAlphaBlendFactor * newColor.a) < alphaBlendOp > (dstAlphaBlendFactor * oldColor.a);
+		}
+		else {
+			finalColor = newColor;
+		}
+		finalColor = finalColor & colorWriteMask;
+		
 
+		opacity version:
+		//finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
+		//finalColor.a = newAlpha.a;
+		
+		colorBlendAttachment.blendEnable = VK_FALSE;
+		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;*/
+		
+		VkPipelineColorBlendStateCreateInfo colorBlending{};
+		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		colorBlending.logicOpEnable = VK_FALSE;//true if applying any blend
+		colorBlending.logicOp = VK_LOGIC_OP_COPY;//bitwise operation, disables every attached blend
+		colorBlending.attachmentCount = 1;
+		colorBlending.pAttachments = &colorBlendAttachment;
+		colorBlending.blendConstants[0] = 0.0f;
+		colorBlending.blendConstants[1] = 0.0f;
+		colorBlending.blendConstants[2] = 0.0f;
+		colorBlending.blendConstants[3] = 0.0f;
+		//*************************************************************************************
+		//uniform values in shaders are dynamic globals that can be passed(at drwaing time)to modify shader behavior
 
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 0;
+		pipelineLayoutInfo.pSetLayouts = nullptr;
+		pipelineLayoutInfo.pushConstantRangeCount = 0;
+		pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+		if (vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create pipeline layout!");
+		}
 
 		//*************************************************************************************
 		//we can destroy them as they have been passed to the pipeline and linked to the GPU already
@@ -131,6 +200,29 @@ namespace one {
 		vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
 
 		std::cerr << "pipeline has initiated \n";
+	}
+
+	//spacify frame attachments
+	void Pipeline::createRenderPass() {
+		//one color buffer attachment to one image
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = _app.swapChainImageFormat;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//no multisampling yet
+		//what to do with data before rendering /ops: preserve previous attchments ; clear them ; dont care about them
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;//about color and depth
+		//what to do after / ops: store them after render to use; discard them
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;//about color and depth
+		//2 next about stencil buffer which is just an extra data for things like shadows or outlines
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		//how pixels of the images aresupposed to be arranged. matches the operation being made at stage
+		//as: color attachments ; present to swapchain ; destination for copy operations
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;//before render pass
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;//right after render finishes
+
+
+		//Subpasses -  rendering operations that depend on frambuffer previous passes
+		//ended here
 	}
 
 	//simply creates a wrapper arround shader byte code
@@ -149,7 +241,9 @@ namespace one {
 		return shaderModule;
 	}
 
-	Pipeline::~Pipeline() {}
+	Pipeline::~Pipeline() {
+		vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
+	}
 }
 
 
