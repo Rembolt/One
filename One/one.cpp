@@ -8,9 +8,6 @@ namespace one {
         end();
     }
 
-
-
-
     void One::initOne() {
         app.initApp();
         pipeline.createPipeline();

@@ -9,15 +9,19 @@ namespace one {
 		Pipeline(App& app);
 		~Pipeline();
 		void createPipeline();
-		void createRenderPass();
 
-		VkPipelineLayout pipelineLayout;
+		VkPipeline graphicsPipeline;
 
+		
 	private:
 
 		App& _app;
 		VkDevice& logicalDevice = _app.logicalDevice;
 		VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
+		void createRenderPass();
+
+		VkRenderPass renderPass;
+		VkPipelineLayout pipelineLayout;
 
 	};
 }

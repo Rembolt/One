@@ -54,7 +54,7 @@ namespace one {
 		//*************************************************************************************
 		//Specifies BIndings(or if data is per vertex or per instance)
 		//instance is when a single mesh is duplicated and we refer to each type of duplicate by instance
-		//for now vertexes are hardcosed(change when buffers come in)
+		//for now vertexes are hardcoded(change when buffers come in)
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -122,7 +122,7 @@ namespace one {
 		rasterizer.depthBiasSlopeFactor = 0.0f;
 		//*************************************************************************************
 		//Multisampling:one way to antialising - combining multiple poligon that rasterize to same pixel
-		//
+		//makes edges smooth
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
@@ -136,7 +136,7 @@ namespace one {
 		//dont have one so pass nullptr;
 		//*************************************************************************************
 		//color blending - either mix old and new - or combine using bitwise operation (check vulkan spec)
-		// for multiple frame buffers, there is per attached state color blend
+		//for multiple frame buffers, there is per attached state color blend
 		//and has to set up second one global color / for now just one frambe buffer so
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -181,8 +181,8 @@ namespace one {
 		colorBlending.blendConstants[2] = 0.0f;
 		colorBlending.blendConstants[3] = 0.0f;
 		//*************************************************************************************
-		//uniform values in shaders are dynamic globals that can be passed(at drwaing time)to modify shader behavior
-
+		//these uniform and push values in shaders are dynamic globals that can be passed
+		//(at drwaing time)to modify shader behavior
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 0;
@@ -193,6 +193,36 @@ namespace one {
 		if (vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
+		//*************************************************************************************
+		VkGraphicsPipelineCreateInfo pipelineInfo{};
+		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.stageCount = 2;
+		pipelineInfo.pStages = shaderStages;//shaderinfo structs
+		//fixed function stages
+		pipelineInfo.pVertexInputState = &vertexInputInfo;
+		pipelineInfo.pInputAssemblyState = &inputAssembly;
+		pipelineInfo.pViewportState = &viewportState;
+		pipelineInfo.pRasterizationState = &rasterizer;
+		pipelineInfo.pMultisampleState = &multisampling;
+		pipelineInfo.pDepthStencilState = nullptr;
+		pipelineInfo.pColorBlendState = &colorBlending;
+		pipelineInfo.pDynamicState = &dynamicState;
+		//
+		pipelineInfo.layout = pipelineLayout;
+		//create renderpass setup info:
+		//can use other renderpasses with this pipeline at runtime as long as they are compatible with this one
+		createRenderPass();
+		pipelineInfo.renderPass = renderPass;
+		pipelineInfo.subpass = 0;
+		//optional
+		// we can create pipelines based on other pipelines to optimize things when switching between them
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;//VK_PIPELINE_CREATE_DERIVATIVE_BIT has to be active if so
+		pipelineInfo.basePipelineIndex = -1;
+
+		//null handle here is pipeline cache data to store to file or temporary memory so next pipeline creations are faster
+		if (vkCreateGraphicsPipelines(logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create graphics pipeline!");
+		}
 
 		//*************************************************************************************
 		//we can destroy them as they have been passed to the pipeline and linked to the GPU already
@@ -202,7 +232,20 @@ namespace one {
 		std::cerr << "pipeline has initiated \n";
 	}
 
-	//spacify frame attachments
+
+	//frameBuffer and renderring recommendations:
+	//only put the necessary information that will be processed on framebuffer
+	//pay a lot of attention to load ops and store ops
+	//put all independent work items(same resolution) in the same renderpass
+	//if able use by_region dependencies between subpasses
+
+
+	//SubPasses are rendering tasks done in some oreder
+	//Subpasses have inputs and outputs / there are shared dependencies between subpasses
+	//example: SubPass0 wrote to depth buffer
+	//			SubPass1 read from depth buffer and wrote to color buffer
+	//			Subpass2 read from color buffer and wrote to framebuffer
+	//The renderpass just specifies the states you need each attachment to be before Subpasses
 	void Pipeline::createRenderPass() {
 		//one color buffer attachment to one image
 		VkAttachmentDescription colorAttachment{};
@@ -221,8 +264,36 @@ namespace one {
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;//right after render finishes
 
 
-		//Subpasses -  rendering operations that depend on frambuffer previous passes
-		//ended here
+		//Subpasses -  rendering operations that depend on frambuffer previous passes(for now just 1)
+		//putting in a single render pass allows vulkan to optimize it
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;//index in attachment description array(for now just one so index 0)
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//layout during subpass
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		//this is the index used in "location": layout(location = 0) out vec4 outColor
+		subpass.pColorAttachments = &colorAttachmentRef;
+		//other ones needed in the future: 
+		// pInputAttachments(read from shader) 
+		// pResolveAttachments(multisampling color)
+		// pDepthStencilAttachment(depth and Stencil data)
+		// pPreserveAttachments(not used for this subpass but has to be passed on)
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = 1;
+		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+
+		//dependencies are the info about which subpass needs which to be done so the tasks cna be executed and who needs them
+		//
+
+		if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
+
 	}
 
 	//simply creates a wrapper arround shader byte code
@@ -242,7 +313,9 @@ namespace one {
 	}
 
 	Pipeline::~Pipeline() {
+		vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
+		vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
 	}
 }
 
