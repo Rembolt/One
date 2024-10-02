@@ -2,7 +2,6 @@
 
 #include "window.h"
 #include "app.h"
-#include "pipeline.h"
 
 namespace one {
 	class One {

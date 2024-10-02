@@ -3,8 +3,8 @@
 #include "window.h"
 #include <vector>
 #include <optional>
-#include "pipeline.h"
 #include "Framebuffer.h"
+#include "pipeline.h"
 
 namespace one {
 
@@ -27,16 +27,7 @@ namespace one {
 				const bool enableValidationLayers = true;
 		#endif
 
-		//getters & setters
-
-		inline VkDevice getLogicalDevice(void) const {
-			return logicalDevice;
-		}
-		//SwapChain 
-		inline VkFormat getSwapChainImageFormat(void) const {
-			return swapChainImageFormat;
-		}
-
+		//this is a manager/helper class it can't pass getters and setters to its objects
 
 	private:
 
@@ -109,7 +100,7 @@ namespace one {
 		std::vector<VkImageView> swapChainImageViews;
 
 		//pipeline
-		Pipeline pipeline{ *this };
+		Pipeline pipeline;
 
 		//FrameBuffers(linked to eache image, where data will be written to)
 		std::vector<Framebuffer*> swapChainFramebuffers;

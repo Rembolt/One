@@ -1,5 +1,4 @@
 #include "app.h"
-#include "Framebuffer.h"
 #include <map>
 #include <set>
 #include <algorithm> // Necessary for std::clamp
@@ -18,7 +17,8 @@ namespace one {
 		createLogicalDevice();
 		createSwapChain();
 		createImageViews();
-		pipeline.createRenderPass();
+		pipeline.setLogicalDevice(logicalDevice);
+		pipeline.createRenderPass(swapChainImageFormat);
 		pipeline.createPipeline();
 		createFrameBuffers();
 
@@ -438,8 +438,7 @@ namespace one {
 				swapChainImageViews[i]
 			};
 
-			Framebuffer framebuffer(logicalDevice,attachments,pipeline.getRenderPass(), swapChainExtent);
-			swapChainFramebuffers[i] = &framebuffer;
+			swapChainFramebuffers[i] = new Framebuffer(logicalDevice, attachments, pipeline.getRenderPass(), swapChainExtent);
 		}
 	}
 
@@ -474,7 +473,9 @@ namespace one {
 
 	App::~App() {
 		for (auto framebuffer : swapChainFramebuffers) {
-			framebuffer->destroy();
+			try { framebuffer->destroy(); }
+			catch (const std::exception& e) { std::cerr << "error destroying framebuffer: " << e.what() << "\n"; }
+			delete framebuffer;
 		}
 		pipeline.destroyPipeline();
 		pipeline.destroyRenderPass();

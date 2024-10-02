@@ -1,16 +1,13 @@
 #include "pipeline.h"
 #include <fstream>
+#include <iostream>
 
 
 namespace one {
-	Pipeline::Pipeline(App& app): _app(app) {
-		_logicalDevice = _app.getLogicalDevice();
+	Pipeline::Pipeline(){
 	}
 
-	Pipeline::~Pipeline() {
-		destroyPipeline();
-		destroyRenderPass();
-	}
+
 
 	//read binary data from file
 	static std::vector<char> readFile(const std::string& filename) {
@@ -251,10 +248,10 @@ namespace one {
 	//			SubPass1 read from depth buffer and wrote to color buffer
 	//			Subpass2 read from color buffer and wrote to framebuffer
 	//The renderpass just specifies the states you need each attachment to be before Subpasses
-	void Pipeline::createRenderPass() {
+	void Pipeline::createRenderPass(VkFormat _swapchainImageFormat) {
 		//one color buffer attachment to one image
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = _app.getSwapChainImageFormat();
+		colorAttachment.format = _swapchainImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//no multisampling yet
 		//what to do with data before rendering /ops: preserve previous attchments ; clear them ; dont care about them
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;//about color and depth
@@ -334,6 +331,10 @@ namespace one {
 		}
 	}
 
+	Pipeline::~Pipeline() {
+		destroyPipeline();
+		destroyRenderPass();
+	}
 
 }
 
