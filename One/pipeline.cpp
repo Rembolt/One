@@ -1,8 +1,16 @@
 #include "pipeline.h"
 #include <fstream>
 
+
 namespace one {
-	Pipeline::Pipeline(App& app): _app(app) {}
+	Pipeline::Pipeline(App& app): _app(app) {
+		_logicalDevice = _app.getLogicalDevice();
+	}
+
+	Pipeline::~Pipeline() {
+		destroyPipeline();
+		destroyRenderPass();
+	}
 
 	//read binary data from file
 	static std::vector<char> readFile(const std::string& filename) {
@@ -190,7 +198,7 @@ namespace one {
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-		if (vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		if (vkCreatePipelineLayout(_logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 		//*************************************************************************************
@@ -211,7 +219,6 @@ namespace one {
 		pipelineInfo.layout = pipelineLayout;
 		//create renderpass setup info:
 		//can use other renderpasses with this pipeline at runtime as long as they are compatible with this one
-		createRenderPass();
 		pipelineInfo.renderPass = renderPass;
 		pipelineInfo.subpass = 0;
 		//optional
@@ -220,25 +227,23 @@ namespace one {
 		pipelineInfo.basePipelineIndex = -1;
 
 		//null handle here is pipeline cache data to store to file or temporary memory so next pipeline creations are faster
-		if (vkCreateGraphicsPipelines(logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+		if (vkCreateGraphicsPipelines(_logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
 
 		//*************************************************************************************
 		//we can destroy them as they have been passed to the pipeline and linked to the GPU already
-		vkDestroyShaderModule(logicalDevice, fragShaderModule, nullptr);
-		vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
+		vkDestroyShaderModule(_logicalDevice, fragShaderModule, nullptr);
+		vkDestroyShaderModule(_logicalDevice, vertShaderModule, nullptr);
 
 		std::cerr << "pipeline has initiated \n";
 	}
-
 
 	//frameBuffer and renderring recommendations:
 	//only put the necessary information that will be processed on framebuffer
 	//pay a lot of attention to load ops and store ops
 	//put all independent work items(same resolution) in the same renderpass
 	//if able use by_region dependencies between subpasses
-
 
 	//SubPasses are rendering tasks done in some oreder
 	//Subpasses have inputs and outputs / there are shared dependencies between subpasses
@@ -249,7 +254,7 @@ namespace one {
 	void Pipeline::createRenderPass() {
 		//one color buffer attachment to one image
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = _app.swapChainImageFormat;
+		colorAttachment.format = _app.getSwapChainImageFormat();
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//no multisampling yet
 		//what to do with data before rendering /ops: preserve previous attchments ; clear them ; dont care about them
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;//about color and depth
@@ -290,7 +295,7 @@ namespace one {
 		//dependencies are the info about which subpass needs which to be done so the tasks cna be executed and who needs them
 		//
 
-		if (vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+		if (vkCreateRenderPass(_logicalDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
 		}
 
@@ -305,18 +310,31 @@ namespace one {
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 
 		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		if (vkCreateShaderModule(_logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create shader module!");
 		}
 
 		return shaderModule;
 	}
 
-	Pipeline::~Pipeline() {
-		vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
-		vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
+	void Pipeline::destroyPipeline() {
+		if (graphicsPipeline != VK_NULL_HANDLE) {
+			vkDestroyPipeline(_logicalDevice, graphicsPipeline, nullptr);
+			graphicsPipeline = VK_NULL_HANDLE;
+		}
+		if (pipelineLayout != VK_NULL_HANDLE) {
+			vkDestroyPipelineLayout(_logicalDevice, pipelineLayout, nullptr);
+			pipelineLayout = VK_NULL_HANDLE;
+		}
 	}
+	void Pipeline::destroyRenderPass() {
+		if (renderPass != VK_NULL_HANDLE) {
+			vkDestroyRenderPass(_logicalDevice, renderPass, nullptr);
+			renderPass = VK_NULL_HANDLE;
+		}
+	}
+
+
 }
 
 
