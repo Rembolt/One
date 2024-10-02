@@ -8,7 +8,6 @@
 namespace one {
 
 	App::App(Window& window): _window(window) {
-		
 	}
 
 	void App::initApp() {
@@ -16,10 +15,12 @@ namespace one {
 		_window.createSurface(instance,surface);
 		pickPhysicalGraphicsDevice();
 		createLogicalDevice();
-		//accessed publicly
 		createSwapChain();
 		createImageViews();
-
+		pipeline.setLogicalDevice(logicalDevice);
+		pipeline.createRenderPass(swapChainImageFormat);
+		pipeline.createPipeline();
+		createFrameBuffers();
 
 		std::cerr << "vulkan app has initiated \n";
 	}
@@ -429,6 +430,18 @@ namespace one {
 		swapChainExtent = extent;
 	}
 
+	void App::createFrameBuffers() {
+		swapChainFramebuffers.resize(swapChainImageViews.size());
+
+		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+			VkImageView attachments[] = {
+				swapChainImageViews[i]
+			};
+
+			swapChainFramebuffers[i] = new Framebuffer(logicalDevice, attachments, pipeline.getRenderPass(), swapChainExtent);
+		}
+	}
+
 	void App::createImageViews() {
 		swapChainImageViews.resize(swapChainImages.size());
 		for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -459,11 +472,17 @@ namespace one {
 	}
 
 	App::~App() {
+		for (auto framebuffer : swapChainFramebuffers) {
+			try { framebuffer->destroy(); }
+			catch (const std::exception& e) { std::cerr << "error destroying framebuffer: " << e.what() << "\n"; }
+			delete framebuffer;
+		}
+		pipeline.destroyPipeline();
+		pipeline.destroyRenderPass();
 		//destroy image views(created by us)
 		for (auto imageView : swapChainImageViews) {
 			vkDestroyImageView(logicalDevice, imageView, nullptr);
 		}
-
 		vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
 		vkDestroyDevice(logicalDevice, nullptr);
 		vkDestroySurfaceKHR(instance, surface, nullptr);

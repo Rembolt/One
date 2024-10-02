@@ -3,6 +3,8 @@
 #include "window.h"
 #include <vector>
 #include <optional>
+#include "Framebuffer.h"
+#include "pipeline.h"
 
 namespace one {
 
@@ -25,18 +27,10 @@ namespace one {
 				const bool enableValidationLayers = true;
 		#endif
 
-		//Creating Logical device
-		VkDevice logicalDevice;
-		
-		//SwapChain 
-		std::vector<VkImage> swapChainImages;
-		VkExtent2D swapChainExtent;
-		VkFormat swapChainImageFormat;
-
-		//Image views
-
+		//this is a manager/helper class it can't pass getters and setters to its objects
 
 	private:
+
 		void createInstance();
 		bool checkValidationLayerSupport();
 		void pickPhysicalGraphicsDevice();
@@ -44,7 +38,9 @@ namespace one {
 		void createLogicalDevice();
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 		void createSwapChain();
+		void createFrameBuffers();
 		void createImageViews();
+
 
 		//Creating Vulkan Instance
 		VkInstance instance;
@@ -67,6 +63,7 @@ namespace one {
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);	
 
 		//Creating Logical device
+		VkDevice logicalDevice;
 		VkQueue graphicsQueue;
 		VkQueue presentationQueue;
 
@@ -87,6 +84,9 @@ namespace one {
 		};
 
 		//SwapChain details
+		std::vector<VkImage> swapChainImages;
+		VkExtent2D swapChainExtent;
+		VkFormat swapChainImageFormat;
 		VkSwapchainKHR swapChain;
 		struct SwapChainSupportDetails {
 			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
@@ -98,5 +98,11 @@ namespace one {
 
 		//Image views(kind of like perspectives of image), depth, volumetric(?), etc.
 		std::vector<VkImageView> swapChainImageViews;
+
+		//pipeline
+		Pipeline pipeline;
+
+		//FrameBuffers(linked to eache image, where data will be written to)
+		std::vector<Framebuffer*> swapChainFramebuffers;
 	};
 }
