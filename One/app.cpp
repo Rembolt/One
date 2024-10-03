@@ -12,15 +12,25 @@ namespace one {
 
 	void App::initApp() {
 		createInstance();
+
 		_window.createSurface(instance,surface);
+
 		pickPhysicalGraphicsDevice();
 		createLogicalDevice();
+
 		createSwapChain();
+
 		createImageViews();
-		pipeline.setLogicalDevice(logicalDevice);
-		pipeline.createRenderPass(swapChainImageFormat);
-		pipeline.createPipeline();
+
+		pipeline = new Pipeline(logicalDevice);
+		pipeline->createRenderPass(swapChainImageFormat);
+		pipeline->createPipeline();
+
 		createFrameBuffers();
+
+		initializeCommandPool();
+		initializeCommandBuffer();
+
 
 		std::cerr << "vulkan app has initiated \n";
 	}
@@ -437,8 +447,8 @@ namespace one {
 			VkImageView attachments[] = {
 				swapChainImageViews[i]
 			};
-
-			swapChainFramebuffers[i] = new Framebuffer(logicalDevice, attachments, pipeline.getRenderPass(), swapChainExtent);
+			//allocating to heap
+			swapChainFramebuffers[i] = new Framebuffer(logicalDevice, attachments, pipeline->getRenderPass(), swapChainExtent);
 		}
 	}
 
@@ -471,21 +481,72 @@ namespace one {
 		}
 	}
 
+	void App::initializeCommandPool() {
+		//checking ou again available queue's index to reference(might create wrapper class for them)
+		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalGraphicsDevice);
+
+		commandPool = new CommandPool(logicalDevice, queueFamilyIndices.graphicsFamily.value());
+		
+	}
+
+	void App::initializeCommandBuffer() {
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = commandPool->getCommandPoolHandler();
+		//primary can be go to queue execution, but cant get called from other buffers
+		//secondary can not go to queue execution, but can get called from other buffers
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
+
+		if (vkAllocateCommandBuffers(logicalDevice, &allocInfo, &commandBuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate command buffer!");
+		}
+	}
+
+	//writes commands to execute in command buffer
+	//in this case write to image
+	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+
+		//start by specifying details on usage of such
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;	
+		beginInfo.flags = 0;
+		beginInfo.pInheritanceInfo = nullptr;
+
+		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+			throw std::runtime_error("failed to begin recording command buffer!");
+		}
+		//ended here
+
+	}
+
 	App::~App() {
+		commandPool->destroy();
+		delete commandPool;
+
 		for (auto framebuffer : swapChainFramebuffers) {
-			try { framebuffer->destroy(); }
-			catch (const std::exception& e) { std::cerr << "error destroying framebuffer: " << e.what() << "\n"; }
+			framebuffer->destroy(); 
+			//must delete pointer after deleting object
 			delete framebuffer;
 		}
-		pipeline.destroyPipeline();
-		pipeline.destroyRenderPass();
+		swapChainFramebuffers.clear();
+
+		pipeline->destroyPipeline();
+
+		pipeline->destroyRenderPass();
+
 		//destroy image views(created by us)
 		for (auto imageView : swapChainImageViews) {
 			vkDestroyImageView(logicalDevice, imageView, nullptr);
 		}
+		swapChainImageViews.clear();
+
 		vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+
 		vkDestroyDevice(logicalDevice, nullptr);
+
 		vkDestroySurfaceKHR(instance, surface, nullptr);
+
 		vkDestroyInstance(instance, nullptr);//pointer to callback
 	}
 }

@@ -6,8 +6,10 @@ namespace one {
 	class Pipeline {
 
 	public:
+		Pipeline(const Pipeline&) = delete;//cant pass by reference
+		Pipeline& operator=(const Pipeline&) = delete;//cant copy by reference;
 		
-		Pipeline();
+		Pipeline(VkDevice logicalDevice);
 		~Pipeline();
 
 		//constructors
@@ -25,10 +27,6 @@ namespace one {
 
 		inline VkRenderPass getRenderPass(void) const {
 			return renderPass;
-		}
-
-		inline void setLogicalDevice(VkDevice logicalDevice) {
-			_logicalDevice = logicalDevice;
 		}
 		
 	private:

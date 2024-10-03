@@ -144,6 +144,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="CommandBuffer.cpp" />
+    <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="one.cpp" />
     <ClCompile Include="main.cpp" />
@@ -151,6 +153,8 @@
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandBuffer.h" />
+    <ClInclude Include="CommandPool.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="one.h" />
     <ClInclude Include="app.h" />

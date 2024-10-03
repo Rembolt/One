@@ -5,6 +5,7 @@
 #include <optional>
 #include "Framebuffer.h"
 #include "pipeline.h"
+#include "CommandPool.h"
 
 namespace one {
 
@@ -40,6 +41,8 @@ namespace one {
 		void createSwapChain();
 		void createFrameBuffers();
 		void createImageViews();
+		void initializeCommandPool();
+		void initializeCommandBuffer();
 
 
 		//Creating Vulkan Instance
@@ -99,10 +102,14 @@ namespace one {
 		//Image views(kind of like perspectives of image), depth, volumetric(?), etc.
 		std::vector<VkImageView> swapChainImageViews;
 
-		//pipeline
-		Pipeline pipeline;
+		//pipeline ptr
+		Pipeline* pipeline;
 
 		//FrameBuffers(linked to eache image, where data will be written to)
 		std::vector<Framebuffer*> swapChainFramebuffers;
+
+		//CommandBufferPool ptr
+		CommandPool* commandPool;
+		CommandBuffer* commandBuffer;
 	};
 }

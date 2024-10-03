@@ -4,7 +4,7 @@
 
 
 namespace one {
-	Pipeline::Pipeline(){
+	Pipeline::Pipeline(VkDevice logicalDevice): _logicalDevice(logicalDevice){
 	}
 
 

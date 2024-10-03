@@ -33,6 +33,12 @@
     <ClCompile Include="Framebuffer.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="CommandPool.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandBuffer.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.h">
@@ -48,6 +54,12 @@
       <Filter>source</Filter>
     </ClInclude>
     <ClInclude Include="Framebuffer.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandPool.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandBuffer.h">
       <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>
