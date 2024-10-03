@@ -20,6 +20,8 @@ namespace one {
     void One::loop() {
         while (!window.shouldClose()) {//closes window if close
             glfwPollEvents();
+            //app.drawFrame();
+            //ended here
         }
     };
 

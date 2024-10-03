@@ -6,6 +6,7 @@
 #include "Framebuffer.h"
 #include "pipeline.h"
 #include "CommandPool.h"
+#include "CommandBuffer.h"
 
 namespace one {
 
@@ -28,6 +29,9 @@ namespace one {
 				const bool enableValidationLayers = true;
 		#endif
 
+		//action methods
+		void drawFrame();
+
 		//this is a manager/helper class it can't pass getters and setters to its objects
 
 	private:
@@ -43,6 +47,7 @@ namespace one {
 		void createImageViews();
 		void initializeCommandPool();
 		void initializeCommandBuffer();
+		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 
 		//Creating Vulkan Instance
@@ -110,6 +115,7 @@ namespace one {
 
 		//CommandBufferPool ptr
 		CommandPool* commandPool;
-		CommandBuffer* commandBuffer;
+		VkCommandBuffer commandBuffer;
+		//CommandBuffer* commandBuffer;
 	};
 }
