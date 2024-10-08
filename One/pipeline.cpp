@@ -290,7 +290,17 @@ namespace one {
 		renderPassInfo.pSubpasses = &subpass;
 
 		//dependencies are the info about which subpass needs which to be done so the tasks cna be executed and who needs them
-		//
+		VkSubpassDependency dependency{};
+		//src must be bigger than dst
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;//source - where it is coming from
+		dependency.dstSubpass = 0;//destination - where it is referring to (we just have one so 0)
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;//pass where they occur
+		dependency.srcAccessMask = 0;//operations to wait on(we are waiting on whole stage itself so imgae to finish being read from on swapchain)
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;//pass where they occur
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;//operations waiting(in this case waiting to write)
+		
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
 
 		if (vkCreateRenderPass(_logicalDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");

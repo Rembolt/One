@@ -20,9 +20,11 @@ namespace one {
     void One::loop() {
         while (!window.shouldClose()) {//closes window if close
             glfwPollEvents();
-            //app.drawFrame();
-            //ended here
+            app.drawFrame();
+            
         }
+        //wait until operations in command queue are finished
+        vkDeviceWaitIdle(app.getLogicalDevice());
     };
 
     void One::end() {

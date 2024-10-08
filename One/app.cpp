@@ -32,7 +32,9 @@ namespace one {
 		initializeCommandBuffer();
 
 		//recordCommandBuffer();
-
+		
+		initializeSyncObjects();
+initializeSyncObjects();
 
 		std::cerr << "vulkan app has initiated \n";
 	}
@@ -580,12 +582,102 @@ namespace one {
 
 
 	}
+	//semaphore adds order to queue operations(commands) on gpu
+	//in same queue and different queues / there are 2 types binary and timeline
+	//for now only using binary
+	//unsignaled and signaled
+	//first we set which operations set out the semaphore / then which operations are waiting on semaphore to signal
+	//resets automatically
 
-	void drawFrame() {
-		return;
+	//fences checks if gpu has finished something
+	//we attach fences to work we submit to execute
+	//unsignaled and signaled / 
+	//first we set which operations set out the fence / then which part of the program is waiting on fence to signal
+	//must be restet manually
+
+	void App::initializeSyncObjects(){
+		
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;	
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;//since first frame ca't wait on previous, fence must start signaled;
+
+		if (vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(logicalDevice, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create sync objects!");
+		}
+
+	}
+
+
+	void App::drawFrame() {
+		//rendering a frame consits of these steps:
+		//wait for previous frame to finish
+		//acquire an image from swapchain - gpu
+		//record a command buffer which draws the scene onto that image 
+		//submit the recorded command buffer(execute) - gpu
+		//present the swap chain image - gpu
+
+		//wait for previous frame draw sequence
+		//array of fences waits for one or all, also has timeout but max int basically disables it
+		vkWaitForFences(logicalDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+		//reset it
+		vkResetFences(logicalDevice, 1, &inFlightFence);
+
+		//acquire image from swapchain - gpu
+		//timeout to maxint to disable, it will sugnal the image available semaphore
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+		//record a command buffer which draws the scene onto that image 
+		//reset it to make sure can be drawn
+		vkResetCommandBuffer(commandBuffer, 0);
+		//starts pipeline and renderpass aiming at framebuffer[imageIndex] and adds draw command to buffer
+		recordCommandBuffer(commandBuffer, imageIndex);
+
+		//submit the recorded command buffer(execute) - gpu
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };//which semaphore to wait on
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };//which stage of pipeline to wait on
+		submitInfo.waitSemaphoreCount = 1;
+		//each index of each array corresponds to each other
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;	
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+		//which semaphores to signal when done
+		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer to queue!");
+		}
+
+		//present the swap chain image - gpu
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;//waiting render to finish
+
+		VkSwapchainKHR swapChains[] = { swapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &imageIndex;//image we drew framebuffer to(index sync)
+		presentInfo.pResults = nullptr;
+
+		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
 
 	App::~App() {
+		vkDestroySemaphore(logicalDevice, imageAvailableSemaphore, nullptr);
+		vkDestroySemaphore(logicalDevice, renderFinishedSemaphore, nullptr);
+		vkDestroyFence(logicalDevice, inFlightFence, nullptr);
+
 		commandPool->destroy();
 		delete commandPool;
 

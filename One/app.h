@@ -32,7 +32,10 @@ namespace one {
 		//action methods
 		void drawFrame();
 
-		//this is a manager/helper class it can't pass getters and setters to its objects
+		//this is a manager/helper class it can't pass getters and setters to its objects but rather to its owners
+		inline VkDevice getLogicalDevice(void) const {
+			return logicalDevice;
+		}
 
 	private:
 
@@ -48,6 +51,7 @@ namespace one {
 		void initializeCommandPool();
 		void initializeCommandBuffer();
 		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void initializeSyncObjects();
 
 
 		//Creating Vulkan Instance
@@ -117,5 +121,10 @@ namespace one {
 		CommandPool* commandPool;
 		VkCommandBuffer commandBuffer;
 		//CommandBuffer* commandBuffer;
+
+		//Sync objects
+		VkSemaphore imageAvailableSemaphore;
+		VkSemaphore renderFinishedSemaphore;
+		VkFence inFlightFence;
 	};
 }
