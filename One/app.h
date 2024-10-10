@@ -1,12 +1,16 @@
 #pragma once
 
-#include "window.h"
-#include <vector>
-#include <optional>
+#include "UtilHeader.h"
+#include "Window.h"
 #include "Framebuffer.h"
-#include "pipeline.h"
-#include "CommandPool.h"
+#include "Pipeline.h"
 #include "CommandBuffer.h"
+#include "Device.h"
+#include "Instance.h"
+#include "RenderPass.h"
+#include "Semaphore.h"
+#include "Fence.h"
+
 
 namespace one {
 
@@ -14,117 +18,63 @@ namespace one {
 
 	public:
 
-		App(Window& window);
-		void initApp();
+		App(Window* pWindow);
+		void initialize();
 		~App();
 		
 
 		App(const App&) = delete;//cant pass by reference
 		App& operator=(const App&) = delete;//cant copy by reference;
 
-		//check if c++ is compiling in anything other than debug mode
-		#ifdef NDEBUG
-				const bool enableValidationLayers = false;
-		#else
-				const bool enableValidationLayers = true;
-		#endif
+		
 
 		//action methods
 		void drawFrame();
 
 		//this is a manager/helper class it can't pass getters and setters to its objects but rather to its owners
-		inline VkDevice getLogicalDevice(void) const {
-			return logicalDevice;
+		inline VkDevice getDevice(void) const {
+			return _device;
 		}
 
 	private:
 
-		void createInstance();
-		bool checkValidationLayerSupport();
-		void pickPhysicalGraphicsDevice();
-		int rateGraphicsDeviceSuitability(VkPhysicalDevice device);
-		void createLogicalDevice();
-		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-		void createSwapChain();
-		void createFrameBuffers();
-		void createImageViews();
-		void initializeCommandPool();
+		
+		void initializeFrameBuffers();
 		void initializeCommandBuffer();
-		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void initializeSyncObjects();
 
+		Instance* pInstance;
+		Device* pDevice;
+		SwapChain pSwapChain;
+		//pipeline ptr
+		Pipeline* pPipeline;
+		RenderPass* pRenderPass;
+		//FrameBuffers(linked to eache image, where data will be written to)
+		std::vector<Framebuffer*> pSwapChainFramebuffers;
+		CommandBuffer* pCommandBuffer;
+		//Sync objects
+		Semaphore pImageAvailableSemaphore;
+		Semaphore pRenderFinishedSemaphore;
+		Fence pInFlightFence;
+			
 
-		//Creating Vulkan Instance
-		VkInstance instance;
+	
 
-		//Picking Graphics card device
-		VkPhysicalDevice physicalGraphicsDevice;
-
-		//Queue families
-		struct QueueFamilyIndices {
-			//opitional adds has_value() to int
-			std::optional<uint32_t> graphicsFamily;
-			std::optional<uint32_t> presentationFamily;//make sure queues can draw on surface
-
-
-			bool isComplete() {
-				//if flag supports graphics bit it will have the indice of it
-				return graphicsFamily.has_value() && presentationFamily.has_value();
-			}
-		};
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);	
-
-		//Creating Logical device
-		VkDevice logicalDevice;
-		VkQueue graphicsQueue;
-		VkQueue presentationQueue;
 
 		//Surface
 		VkSurfaceKHR surface;
 
 		//Window pointer
-		Window& _window;
+		Window* pWindow;
 
-		//Validation layers:
-		const std::vector<const char*> validationLayers = {//if I ever need to debug other platforms might need to add other validations
-			"VK_LAYER_KHRONOS_validation"
-		};
+		//logical device
+		VkDevice _device;
 
-		//Device Extensions:
-		const std::vector<const char*> deviceExtensions = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
-		};
-
-		//SwapChain details
-		std::vector<VkImage> swapChainImages;
-		VkExtent2D swapChainExtent;
-		VkFormat swapChainImageFormat;
-		VkSwapchainKHR swapChain;
-		struct SwapChainSupportDetails {
-			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc
-			std::vector<VkSurfaceFormatKHR> formats; // pixel format and color space
-			std::vector<VkPresentModeKHR> presentationModes;
-		};
-		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice graphicsDevice);
-		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
-		//Image views(kind of like perspectives of image), depth, volumetric(?), etc.
-		std::vector<VkImageView> swapChainImageViews;
-
-		//pipeline ptr
-		Pipeline* pipeline;
-
-		//FrameBuffers(linked to eache image, where data will be written to)
-		std::vector<Framebuffer*> swapChainFramebuffers;
+		CommandBuffer* pCommandBuffer;
 
 		//CommandBufferPool ptr
-		CommandPool* commandPool;
-		VkCommandBuffer commandBuffer;
-		//CommandBuffer* commandBuffer;
 
-		//Sync objects
-		VkSemaphore imageAvailableSemaphore;
-		VkSemaphore renderFinishedSemaphore;
-		VkFence inFlightFence;
+
+		
+		
 	};
 }

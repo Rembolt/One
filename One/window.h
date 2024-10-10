@@ -1,11 +1,8 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN //GLFW has its own definitions for vulkan and will call it
-#include <GLFW/glfw3.h>
-
+#include "UtilHeader.h"
 #include <string>
-#include <stdexcept>
-#include <iostream>
+
 namespace one {
 
 	class Window {

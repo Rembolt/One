@@ -1,7 +1,7 @@
 #pragma once
 
-#include "window.h"
-#include "app.h"
+#include "Window.h"
+#include "App.h"
 
 namespace one {
 	class One {
@@ -13,7 +13,7 @@ namespace one {
 
 	private:
 		Window window{ WIDTH, HEIGHT, "One" };
-		App app{ window };
+		App app{ &window };
 
 		void initOne();
 		void loop();

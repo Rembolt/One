@@ -143,23 +143,41 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="app.cpp" />
+    <ClCompile Include="App.cpp" />
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="Device.cpp" />
+    <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
-    <ClCompile Include="one.cpp" />
+    <ClCompile Include="ImageView.cpp" />
+    <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="One.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pipeline.cpp" />
-    <ClCompile Include="window.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="Queue.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="Semaphore.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="CommandPool.h" />
+    <ClInclude Include="Device.h" />
+    <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
-    <ClInclude Include="one.h" />
-    <ClInclude Include="app.h" />
-    <ClInclude Include="pipeline.h" />
-    <ClInclude Include="window.h" />
+    <ClInclude Include="ImageView.h" />
+    <ClInclude Include="Instance.h" />
+    <ClInclude Include="NonCopyable.h" />
+    <ClInclude Include="One.h" />
+    <ClInclude Include="App.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="Queue.h" />
+    <ClInclude Include="RenderPass.h" />
+    <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="UtilHeader.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="shader.vert">

@@ -11,8 +11,8 @@ namespace one {
 		
 		void destroy();
 
-		inline VkFramebuffer getFramebufferHandle() const{ 
-			return framebufferHandle;
+		inline VkFramebuffer getFramebuffer() const{ 
+			return frameBuffer;
 		};
 
 		
@@ -23,7 +23,7 @@ namespace one {
 
 		VkDevice _logicalDevice;
 
-		VkFramebuffer framebufferHandle{VK_NULL_HANDLE};
+		VkFramebuffer frameBuffer{VK_NULL_HANDLE};
 		
 		
 
