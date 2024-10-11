@@ -13,18 +13,19 @@ namespace one {
         //and separate the bellow functions to other files as well as put everyting in a folder
         //so app can create and get set some items while runtime functions can be sent to each class
         //
-        app.initApp();
+        pWindow = new Window(WIDTH, HEIGHT, "One");
+        pApp = new App(pWindow);
         std::cerr << "one has initiated \n";
     }
 
     void One::loop() {
-        while (!window.shouldClose()) {//closes window if close
+        while (!pWindow->shouldClose()) {//closes window if close
             glfwPollEvents();
-            app.drawFrame();
+            pApp->drawFrame();
             
         }
         //wait until operations in command queue are finished
-        vkDeviceWaitIdle(app.getLogicalDevice());
+        vkDeviceWaitIdle(pApp->getDevice());
     };
 
     void One::end() {

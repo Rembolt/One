@@ -93,8 +93,11 @@ namespace one{
 
 	}
 
-	bool CommandBuffer::reset() {
-		return vkResetCommandBuffer(commandBuffer, 0) == VK_SUCCESS;
+	void CommandBuffer::reset() {
+
+		if (vkResetCommandBuffer(commandBuffer, 0) != VK_SUCCESS) {
+			throw std::runtime_error("failed to reset command buffer!");
+		}
 	}
 
 	void CommandBuffer::destroy() {

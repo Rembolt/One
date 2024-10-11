@@ -1,4 +1,5 @@
 #include "SwapChain.h"
+#include <algorithm> // Necessary for std::clamp
 
 namespace one {
 	SwapChain::SwapChain( Window* pWindow, VkInstance _instance) : pWindow(pWindow) {

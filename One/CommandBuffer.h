@@ -14,12 +14,15 @@ namespace one {
 		
 		void recordCommandBuffer(VkFramebuffer frameBuffer, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkExtent2D swapChainExtent);
 
-		bool reset();
+		void reset();
 
 		inline VkCommandBuffer getCommandBuffer() const {
 			return commandBuffer;
 		}
 
+		inline const VkCommandBuffer* getCommandBufferPointer() const {
+			return &commandBuffer;
+		}
 		
 
 	private:

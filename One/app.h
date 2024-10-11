@@ -27,7 +27,6 @@ namespace one {
 		App& operator=(const App&) = delete;//cant copy by reference;
 
 		
-
 		//action methods
 		void drawFrame();
 
@@ -41,10 +40,12 @@ namespace one {
 		
 		void initializeFrameBuffers();
 		void initializeCommandBuffer();
+		void initializeSyncObjects();
 
 		Instance* pInstance;
 		Device* pDevice;
-		SwapChain pSwapChain;
+		//Swapchain wrapper (handles images from vulkan to surface)
+		SwapChain* pSwapChain;
 		//pipeline ptr
 		Pipeline* pPipeline;
 		RenderPass* pRenderPass;
@@ -52,29 +53,20 @@ namespace one {
 		std::vector<Framebuffer*> pSwapChainFramebuffers;
 		CommandBuffer* pCommandBuffer;
 		//Sync objects
-		Semaphore pImageAvailableSemaphore;
-		Semaphore pRenderFinishedSemaphore;
-		Fence pInFlightFence;
+		Semaphore* pImageAvailableSemaphore;
+		Semaphore* pRenderFinishedSemaphore;
+		Fence* pInFlightFence;
 			
+		//list of queues
+		Queue* pGraphicsQueue;
+		Queue* pPresentationQueue;
 
-	
-
-
-		//Surface
-		VkSurfaceKHR surface;
 
 		//Window pointer
 		Window* pWindow;
 
 		//logical device
 		VkDevice _device;
-
-		CommandBuffer* pCommandBuffer;
-
-		//CommandBufferPool ptr
-
-
-		
 		
 	};
 }

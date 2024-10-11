@@ -2,7 +2,7 @@
 
 namespace one {
 	Instance::Instance() {
-
+		initialize();
 	}
 
 	void Instance::initialize() {

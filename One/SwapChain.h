@@ -23,20 +23,28 @@ namespace one {
 
 		uint32_t nextImage(VkDevice _device, VkSemaphore _semaphore);
 
-		inline VkFormat getImageFormat(void) const {
+		inline VkSurfaceKHR getSurface() const {
+			return  surface;
+		}
+
+		inline VkFormat getImageFormat() const {
 			return swapChainImageFormat;
 		}
 
-		inline VkExtent2D getExtent (void) const {
+		inline VkExtent2D getExtent() const {
 			return  swapChainExtent;
 		}
 
-		inline int getSwapChainImagesSize()(void) const {
+		inline size_t getSwapChainImagesSize() const {
 			return swapChainImages.size();
 		}
 
 		inline VkImageView getImageViews(int index) const {
 			return pSwapChainImageViews[index]->getImageView();
+		}
+
+		inline VkSwapchainKHR getSwapChain() const {
+			return swapChain;
 		}
 
 

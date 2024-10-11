@@ -2,8 +2,11 @@
 #include <map>
 #include <set>
 
+
 namespace one {
-	Device::Device(VkInstance _instance, const std::vector<const char*> validationLayers, Window* _window, SwapChain* pSwapChain): _window(_window){
+	Device::Device(VkInstance _instance, const std::vector<const char*> validationLayers, 
+					SwapChain* pSwapChain, Queue* pGraphicsQueue, Queue* pPresentationQueue): 
+					_instance(_instance), pSwapChain(pSwapChain), pPresentationQueue(pPresentationQueue), pGraphicsQueue(pGraphicsQueue) {
 		initialize();
 	}
 
@@ -32,7 +35,6 @@ namespace one {
 		//choose the best device on machine. 
 		//Now we are just getting highest score that also works:
 		std::multimap<int, VkPhysicalDevice> candidates;
-
 		for (const auto& device : graphicDevices) {
 			int score = rateGraphicsDeviceSuitability(device);
 			candidates.insert(std::make_pair(score, device));
@@ -65,8 +67,8 @@ namespace one {
 		/*if (!graphicsDeviceFeatures.geometryShader) {
 			return 0;
 		}*/
-		QueueFamilyIndices indices = findQueueFamilies(graphicsDevice);
-		if (!indices.isComplete()) {
+
+		if (!findQueueFamilies(graphicsDevice, pGraphicsQueue, pPresentationQueue)) {
 			std::cerr << "this graphics device " << graphicsDeviceProperties.deviceID << " does not support the queues neccessary for the vulkan commands used!\n";
 			return 0;
 		}
@@ -74,7 +76,7 @@ namespace one {
 			std::cerr << "this graphics device " << graphicsDeviceProperties.deviceID << " does not support all extensions necessary to run program!\n";
 			return 0;
 		}
-		SwapChainSupportDetails swapChainSupport = pSwapChain->querySwapChainSupport(graphicsDevice);
+		SwapChain::SwapChainSupportDetails swapChainSupport = pSwapChain->querySwapChainSupport(graphicsDevice);
 		//for now our swapchain just needs 1 image format, 1 presentation mode
 		if (swapChainSupport.formats.empty() || swapChainSupport.presentationModes.empty()) {
 			std::cerr << "this graphics device and surface dont hold enough compatible image formats and presentation modes!\n";
@@ -84,7 +86,7 @@ namespace one {
 		// Discrete GPUs have a significant performance advantage
 		score += 1000 * (graphicsDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
 		//if both are same performance is faster
-		score += 1000 * (indices.graphicsFamily == indices.presentationFamily);
+		score += 1000 * (pGraphicsQueue->getFamilyIndex() == pPresentationQueue->getFamilyIndex());
 		// Maximum possible size of textures affects graphics quality
 		score += graphicsDeviceProperties.limits.maxImageDimension2D;
 
@@ -94,23 +96,24 @@ namespace one {
 	}
 
 	void Device::initializeLogicalDevice() {
-		QueueFamilyIndices indices = findQueueFamilies(physicalGraphicsDevice);
+		assert(findQueueFamilies(physicalGraphicsDevice, pGraphicsQueue, pPresentationQueue));
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = {
-			indices.graphicsFamily.value(),
-			indices.presentationFamily.value()
+		std::set<uint32_t>  uniqueQueueFamilies = {
+			pGraphicsQueue->getFamilyIndex(),
+			pPresentationQueue->getFamilyIndex()
 		};
 
+		//most times both are the same
 		float queuePriority = 1.0f;//priority of which queue to prioritize
+		//right now just creating one, fix findQueues function if 2 different needed
 		for (uint32_t queueFamily : uniqueQueueFamilies) {
 			VkDeviceQueueCreateInfo queueCreateInfo{};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.queueFamilyIndex = queueFamily;
 			queueCreateInfo.queueCount = 1;
+			std::cerr << "Queue added index:"<< queueFamily<<" \n";
 			queueCreateInfo.pQueuePriorities = &queuePriority;
-			queuePriority -= 0.01f;//decreases priority as you go down the list
-			//THIS MIGHT CAUSE PROBLEMS
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
@@ -134,7 +137,6 @@ namespace one {
 		if (vkCreateDevice(physicalGraphicsDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create logical device!");
 		}
-
 	}
 
 	bool Device::checkDeviceExtensionSupport(const VkPhysicalDevice graphicsDevice) {
@@ -162,8 +164,8 @@ namespace one {
 		return true;
 	}
 
-	Device::QueueFamilyIndices Device::findQueueFamilies(const VkPhysicalDevice graphicsDevice) {
-		QueueFamilyIndices indices;
+	bool Device::findQueueFamilies(const VkPhysicalDevice graphicsDevice, Queue* pGraphicsQueue, Queue* pPrasentationQueue) {
+
 		//on vulkan any command sent to vulkan is submitted to a queue
 		//there is different types of queues with different sizes
 		//this checks(for now) for any queues that support graphics
@@ -175,25 +177,32 @@ namespace one {
 		vkGetPhysicalDeviceQueueFamilyProperties(graphicsDevice, &queueFamilyCount, queueFamilies.data());
 
 		int i = 0;
+		int queueSet = 0;
 		//marks the flag indice of the 
 		for (const auto& queueFamily : queueFamilies) {
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 				//queueFamily that has atleast the graphics bit
-				indices.graphicsFamily = i;
+				assert(pGraphicsQueue->setFamilyIndex(i));
+				assert(pGraphicsQueue->setQueueCount(queueFamily.queueCount));
+				std::cerr << "Queue count:" << queueFamily.queueCount << " \n";
+				queueSet++;
 			}
 			//if presentationsupport is available on this queue being checked
 			VkBool32 presentationSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(graphicsDevice, i, surface, &presentationSupport);
+			vkGetPhysicalDeviceSurfaceSupportKHR(graphicsDevice, i, pSwapChain->getSurface(), &presentationSupport);
 			if (presentationSupport) {
-				indices.presentationFamily = i;
+				assert(pPresentationQueue->setFamilyIndex(i));
+				assert(pPresentationQueue->setQueueCount(queueFamily.queueCount));
+				std::cerr << "Queue count:" << queueFamily.queueCount << " \n";
+				queueSet++;
 			}
-			if (indices.isComplete()) {
-				break;
+			if (queueSet >=2) {
+				return true;
 			}
 			i++;
 		}
 
-		return indices;
+		return false;
 	}
 
 	void Device::destroy() {

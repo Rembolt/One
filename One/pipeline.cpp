@@ -3,7 +3,8 @@
 
 
 namespace one {
-	Pipeline::Pipeline(VkDevice _device): _device(_device){
+	Pipeline::Pipeline(VkDevice _device, VkRenderPass _renderPass): _device(_device){
+		initialize(_renderPass);
 	}
 
 	//read binary data from file
@@ -24,7 +25,7 @@ namespace one {
 		return buffer;
 	}
 
-	void Pipeline::createPipeline() {
+	void Pipeline::initialize(VkRenderPass _renderPass) {
 		auto vertShaderCode = readFile("shader.vert.spv");
 		auto fragShaderCode = readFile("shader.frag.spv");
 
@@ -213,7 +214,7 @@ namespace one {
 		pipelineInfo.layout = pipelineLayout;
 		//create renderpass setup info:
 		//can use other renderpasses with this pipeline at runtime as long as they are compatible with this one
-		pipelineInfo.renderPass = renderPass;
+		pipelineInfo.renderPass = _renderPass;
 		pipelineInfo.subpass = 0;
 		//optional
 		// we can create pipelines based on other pipelines to optimize things when switching between them
@@ -221,7 +222,7 @@ namespace one {
 		pipelineInfo.basePipelineIndex = -1;
 
 		//null handle here is pipeline cache data to store to file or temporary memory so next pipeline creations are faster
-		if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+		if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
 
@@ -243,7 +244,7 @@ namespace one {
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 
 		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(_logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		if (vkCreateShaderModule(_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create shader module!");
 		}
 
@@ -251,12 +252,12 @@ namespace one {
 	}
 
 	void Pipeline::destroy() {
-		if (graphicsPipeline != VK_NULL_HANDLE) {
-			vkDestroyPipeline(_logicalDevice, graphicsPipeline, nullptr);
-			graphicsPipeline = VK_NULL_HANDLE;
+		if (pipeline != VK_NULL_HANDLE) {
+			vkDestroyPipeline(_device, pipeline, nullptr);
+			pipeline = VK_NULL_HANDLE;
 		}
 		if (pipelineLayout != VK_NULL_HANDLE) {
-			vkDestroyPipelineLayout(_logicalDevice, pipelineLayout, nullptr);
+			vkDestroyPipelineLayout(_device, pipelineLayout, nullptr);
 			pipelineLayout = VK_NULL_HANDLE;
 		}
 	}

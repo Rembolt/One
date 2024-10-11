@@ -2,22 +2,28 @@
 #include "UtilHeader.h"
 #include <optional>
 #include "Queue.h"
+#include "SwapChain.h"
 #include "Window.h"
-#include "Swapchain.h"
+
 
 namespace one {
 	class Device : NonCopyable
 	{
 	public:
 
-		Device(VkInstance _instance, const std::vector<const char*> validationLayers, Window* _window, SwapChain* pSwapChain);
+		Device(VkInstance _instance, const std::vector<const char*> validationLayers,
+			SwapChain* pSwapChain, Queue* pGraphicsQueue, Queue* pPresentationQueue);
 		~Device();
 
 		void initialize();
 		void destroy();
 
-		inline VkDevice getDevice(void) const {
+		inline VkDevice getDevice() const {
 			return device;
+		}
+
+		inline VkPhysicalDevice getPhysicalGraphicsDevice() const {
+			return  physicalGraphicsDevice;
 		}
 
 	private:
@@ -37,23 +43,13 @@ namespace one {
 
 
 		//Queue families
-		struct QueueFamilyIndices {
-			//opitional adds has_value() to int
-			std::optional<uint32_t> graphicsFamily;
-			std::optional<uint32_t> presentationFamily;//make sure queues can draw on surface
+		bool findQueueFamilies(const VkPhysicalDevice graphicsDevice, Queue* pGraphicsQueue, Queue* pPrasentationQueue);
 
-
-			bool isComplete() {
-				//if flag supports graphics bit it will have the indice of it
-				return graphicsFamily.has_value() && presentationFamily.has_value();
-			}
-		};
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice graphicsDevice);
-
+		//DEVICE handle
 		VkDevice device;
 
 		//Picking Graphics card device
-		VkPhysicalDevice physicalGraphicsDevice;
+		VkPhysicalDevice physicalGraphicsDevice = VK_NULL_HANDLE;
 
 		//Device Extensions:
 		const std::vector<const char*> deviceExtensions = {
@@ -67,7 +63,7 @@ namespace one {
 		Queue* pGraphicsQueue;
 		Queue* pPresentationQueue;
 
-		};
+		
 
 	};
 }

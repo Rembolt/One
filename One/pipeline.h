@@ -8,25 +8,25 @@ namespace one {
 		Pipeline(const Pipeline&) = delete;//cant pass by reference
 		Pipeline& operator=(const Pipeline&) = delete;//cant copy by reference;
 		
-		Pipeline(VkDevice _device);
+		Pipeline(VkDevice _device, VkRenderPass _renderPass);
 		~Pipeline();
 
 		//constructors
-		void createPipeline();
+		void initialize(VkRenderPass _renderPass);
 
 		//destructors
 		void destroy();
 
 		//getters & setters
-		inline VkPipeline getGraphicsPipeline(void) const {
-			return graphicsPipeline;
+		inline VkPipeline getPipeline(void) const {
+			return pipeline;
 		}
 		
 	private:
 		
 		VkDevice _device;
 
-		VkPipeline graphicsPipeline;
+		VkPipeline pipeline;
 
 		VkPipelineLayout pipelineLayout;
 
