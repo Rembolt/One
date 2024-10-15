@@ -44,10 +44,13 @@ namespace one {
 	}
 
 	void Fence::destroy() {
-
+		if (fence != VK_NULL_HANDLE) {
+			vkDestroyFence(_device, fence, nullptr);
+			fence = VK_NULL_HANDLE;
+		}
 	}
 
 	Fence::~Fence() {
-
+		destroy();
 	}
 }

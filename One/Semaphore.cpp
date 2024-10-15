@@ -24,7 +24,10 @@ namespace one {
 	}
 
 	void Semaphore::destroy() {
-
+		if (semaphore != VK_NULL_HANDLE) {
+			vkDestroySemaphore(_device, semaphore, nullptr);
+			semaphore = VK_NULL_HANDLE;
+		}
 	}
 	Semaphore::~Semaphore() {
 

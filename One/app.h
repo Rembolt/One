@@ -20,6 +20,7 @@ namespace one {
 
 		App(Window* pWindow);
 		void initialize();
+		void destroy();
 		~App();
 		
 

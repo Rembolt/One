@@ -14,11 +14,16 @@ namespace one {
 		Window& operator=(const Window&) = delete;
 		
 		bool shouldClose();
-		void createSurface(const VkInstance& instance, VkSurfaceKHR& surface);
+		void initializeSurface(const VkInstance instance, VkSurfaceKHR& surface);
+		bool destroySurface(const VkInstance instance, VkSurfaceKHR surface);
 		void getFramebufferSize(int& width, int& height);
 
+		GLFWwindow* getWindow() const{
+			return window;
+		}
+
 	private:
-		void initWindow();
+		void initialize();
 
 		const uint32_t WIDTH;
 		const uint32_t HEIGHT;

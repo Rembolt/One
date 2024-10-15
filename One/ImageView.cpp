@@ -1,7 +1,7 @@
 #include "ImageView.h"
 
 namespace one {
-	ImageView::ImageView(VkDevice _device, VkImage _image, VkFormat swapchainImageFormat) : _image(_image){
+	ImageView::ImageView(VkDevice _device, VkImage _image, VkFormat swapchainImageFormat) :  _image(_image){
 		initialize(_device, swapchainImageFormat);
 	}
 
@@ -32,10 +32,13 @@ namespace one {
 
 		std::cerr << "vulkan imageview has initiated \n";
 	}
-	void ImageView::destroy() {
-
+	void ImageView::destroy(VkDevice _device) {
+		if (imageView != VK_NULL_HANDLE) {
+			vkDestroyImageView(_device, imageView, nullptr);
+			imageView = VK_NULL_HANDLE;
+		}
 	}
 	ImageView::~ImageView() {
-
+		//no need as no problems emerged and I prefer not saving a handle of _device in the class yet
 	}
 }

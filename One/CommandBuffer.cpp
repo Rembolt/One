@@ -102,9 +102,9 @@ namespace one{
 	}
 
 	void CommandBuffer::destroy() {
-
+		//destroyed when commandpool is destroyed
 	}
 	CommandBuffer::~CommandBuffer() {
-
+		destroy();
 	}
 }

@@ -3,7 +3,7 @@
 
 namespace one {
 	SwapChain::SwapChain( Window* pWindow, VkInstance _instance) : pWindow(pWindow) {
-		pWindow->createSurface(_instance, surface);
+		pWindow->initializeSurface(_instance, surface);
 	}
 
 
@@ -162,10 +162,19 @@ namespace one {
 		return imageIndex;
 	}
 
-	void SwapChain::destroy() {
+	void SwapChain::destroy(VkDevice _device) {
+		for (auto imageView : pSwapChainImageViews) {
+			imageView->destroy(_device);
+			delete imageView;
+		}
+		pSwapChainImageViews.clear();
 
+		if (swapChain != VK_NULL_HANDLE) {
+			vkDestroySwapchainKHR(_device, swapChain, nullptr);
+			swapChain = VK_NULL_HANDLE;
+		}
 	}
 	SwapChain::~SwapChain() {
-
+		//no need as no problems emerged and I prefer not saving a handle of _device in the class yet
 	}
 }

@@ -12,7 +12,7 @@ namespace one {
 		~SwapChain();
 
 		void initialize(VkDevice _device, VkPhysicalDevice physicalGraphicsDevice);
-		void destroy();
+		void destroy(VkDevice _device);
 
 		struct SwapChainSupportDetails {
 			VkSurfaceCapabilitiesKHR capabilities;// images on swap chain info, width and height of images etc

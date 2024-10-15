@@ -10,7 +10,7 @@ namespace one {
 		~ImageView();
 
 		void initialize(VkDevice _device, VkFormat swapchainImageFormat);
-		void destroy();
+		void destroy(VkDevice _device);
 
 		inline VkImageView getImageView(void) const {
 			return imageView;
@@ -22,6 +22,7 @@ namespace one {
 
 		//target image from swap chain
 		VkImage _image;
+
 
 	};
 }

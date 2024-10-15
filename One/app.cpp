@@ -128,6 +128,45 @@ namespace one {
 		
 	}
 
+	void App::destroy() {
+		pImageAvailableSemaphore->destroy();
+		delete pImageAvailableSemaphore;
+		pRenderFinishedSemaphore->destroy();
+		delete pRenderFinishedSemaphore;
+		pInFlightFence->destroy();
+		delete pInFlightFence;
+
+		pGraphicsQueue->destroy();
+
+		for (auto framebuffer : pSwapChainFramebuffers) {
+			framebuffer->destroy();
+			//must delete pointer after deleting object
+			delete framebuffer;
+		}
+		pSwapChainFramebuffers.clear();
+
+		pPipeline->destroy();
+		delete pPipeline;
+
+		pRenderPass->destroy();
+		delete pRenderPass;
+
+		pSwapChain->destroy(_device);
+		delete pSwapChain;
+
+		//queue is only deleted close to device and can't be vkDestroyed
+		delete pGraphicsQueue;
+		delete pPresentationQueue;
+
+		pDevice->destroy();
+		delete pDevice;
+
+		assert(pWindow->destroySurface(pInstance->getInstance(), pSwapChain->getSurface()));
+
+		pInstance->destroy();
+		delete pInstance;
+	}
+
 	App::~App() {
 		
 		

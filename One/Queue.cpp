@@ -35,9 +35,12 @@ namespace one {
 	}
 
 	void Queue::destroy() {
-
+		//destroyed with physical device
+		pCommandPool->destroy();
+		delete pCommandPool;
 	}
-	Queue::~Queue() {
 
+	Queue::~Queue() {
+		destroy();
 	}
 }
