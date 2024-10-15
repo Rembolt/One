@@ -27,6 +27,8 @@ namespace one {
 		if (vkCreateFramebuffer(_device, &framebufferInfo, nullptr, &frameBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create a framebuffer!");
 		}
+
+		std::cerr << "vulkan framebuffer has initiated \n";
 	}
 
 	void Framebuffer::destroy() {

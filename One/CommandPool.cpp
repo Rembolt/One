@@ -17,6 +17,8 @@ namespace one {
 			throw std::runtime_error("failed to create command pool!");
 		}
 
+		std::cerr << "vulkan commandpool has initiated \n";
+
 	}
 
 	void CommandPool::destroy() {

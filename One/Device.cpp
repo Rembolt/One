@@ -112,7 +112,6 @@ namespace one {
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.queueFamilyIndex = queueFamily;
 			queueCreateInfo.queueCount = 1;
-			std::cerr << "Queue added index:"<< queueFamily<<" \n";
 			queueCreateInfo.pQueuePriorities = &queuePriority;
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
@@ -137,6 +136,8 @@ namespace one {
 		if (vkCreateDevice(physicalGraphicsDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create logical device!");
 		}
+
+		std::cerr << "vulkan device has initiated \n";
 	}
 
 	bool Device::checkDeviceExtensionSupport(const VkPhysicalDevice graphicsDevice) {
@@ -184,7 +185,6 @@ namespace one {
 				//queueFamily that has atleast the graphics bit
 				assert(pGraphicsQueue->setFamilyIndex(i));
 				assert(pGraphicsQueue->setQueueCount(queueFamily.queueCount));
-				std::cerr << "Queue count:" << queueFamily.queueCount << " \n";
 				queueSet++;
 			}
 			//if presentationsupport is available on this queue being checked
@@ -193,7 +193,6 @@ namespace one {
 			if (presentationSupport) {
 				assert(pPresentationQueue->setFamilyIndex(i));
 				assert(pPresentationQueue->setQueueCount(queueFamily.queueCount));
-				std::cerr << "Queue count:" << queueFamily.queueCount << " \n";
 				queueSet++;
 			}
 			if (queueSet >=2) {

@@ -75,6 +75,8 @@ namespace one {
 			throw std::runtime_error("failed to create render pass!");
 		}
 
+		std::cerr << "vulkan renderpass has initiated \n";
+
 	}
 	void RenderPass::destroy() {
 		if (renderPass != VK_NULL_HANDLE) {

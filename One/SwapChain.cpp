@@ -63,7 +63,9 @@ namespace one {
 		swapChainImageFormat = surfaceFormat.format;
 		swapChainExtent = extent;
 
-		initializeImageViews();
+		initializeImageViews(_device);
+
+		std::cerr << "vulkan KHR swapchain has initiated \n";
 	}
 
 	SwapChain::SwapChainSupportDetails SwapChain::querySwapChainSupport(const VkPhysicalDevice graphicsDevice) {
@@ -147,7 +149,7 @@ namespace one {
 		}
 	}
 
-	void SwapChain::initializeImageViews() {
+	void SwapChain::initializeImageViews(VkDevice _device) {
 		pSwapChainImageViews.resize(swapChainImages.size());
 		for (size_t i = 0; i < swapChainImages.size(); i++) {
 			pSwapChainImageViews[i] = new ImageView(_device, swapChainImages[i], swapChainImageFormat);

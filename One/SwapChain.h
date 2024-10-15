@@ -49,12 +49,12 @@ namespace one {
 
 
 	private:
-		void initializeImageViews();
+		void initializeImageViews(VkDevice _device);
 
 		//swapchain(handles images from vulkan to surface)
 		VkSwapchainKHR swapChain;
 
-		VkDevice _device;
+		//VkDevice _device;
 
 		//window to send surface to
 		Window* pWindow;

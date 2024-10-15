@@ -19,6 +19,8 @@ namespace one {
 		if (vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS ){
 			throw std::runtime_error("failed to create semaphore objects!");
 		}
+
+		std::cerr << "vulkan semaphore has initiated \n";
 	}
 
 	void Semaphore::destroy() {

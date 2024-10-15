@@ -19,6 +19,8 @@ namespace one {
 		if (vkCreateFence(_device, &fenceInfo, nullptr, &fence) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create semaphore objects!");
 		}
+
+		std::cerr << "vulkan fence has initiated \n";
 	}
 
 	bool Fence::waitForFence(uint64_t timeout)

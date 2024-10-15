@@ -29,6 +29,8 @@ namespace one {
 		if (vkCreateImageView(_device, &createInfo, nullptr, &imageView) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image views!");
 		}
+
+		std::cerr << "vulkan imageview has initiated \n";
 	}
 	void ImageView::destroy() {
 

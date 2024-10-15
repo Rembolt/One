@@ -18,6 +18,8 @@ namespace one{
 		if (vkAllocateCommandBuffers(_device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate command buffer!");
 		}
+
+		std::cerr << "vulkan commandbuffer has initiated \n";
 	}
 
 	//writes commands to execute in command buffer
@@ -90,7 +92,6 @@ namespace one{
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
-
 	}
 
 	void CommandBuffer::reset() {

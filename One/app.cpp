@@ -39,7 +39,7 @@ namespace one {
 		
 		initializeSyncObjects();
 
-		std::cerr << "vulkan app has initiated \n";
+		std::cerr << "app has initiated \n";
 	}
 
 

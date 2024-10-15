@@ -231,7 +231,7 @@ namespace one {
 		vkDestroyShaderModule(_device, fragShaderModule, nullptr);
 		vkDestroyShaderModule(_device, vertShaderModule, nullptr);
 
-		std::cerr << "pipeline has initiated \n";
+		std::cerr << "vulkan pipeline has initiated \n";
 	}
 
 

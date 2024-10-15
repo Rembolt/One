@@ -7,9 +7,11 @@ namespace one {
 	}
 
 	bool Queue::initialize(VkDevice _device) {
-		_device = _device;
+		Queue::_device = _device;
 		vkGetDeviceQueue(_device, familyIndex, 0, &queue);
 		initializeCommandPool();
+
+		std::cerr << "vulkan queue has initiated \n";
 		return true;
 	}
 
