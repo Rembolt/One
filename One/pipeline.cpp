@@ -1,13 +1,11 @@
-#include "pipeline.h"
+#include "Pipeline.h"
 #include <fstream>
-#include <iostream>
 
 
 namespace one {
-	Pipeline::Pipeline(VkDevice logicalDevice): _logicalDevice(logicalDevice){
+	Pipeline::Pipeline(VkDevice _device, VkRenderPass _renderPass): _device(_device){
+		initialize(_renderPass);
 	}
-
-
 
 	//read binary data from file
 	static std::vector<char> readFile(const std::string& filename) {
@@ -27,7 +25,7 @@ namespace one {
 		return buffer;
 	}
 
-	void Pipeline::createPipeline() {
+	void Pipeline::initialize(VkRenderPass _renderPass) {
 		auto vertShaderCode = readFile("shader.vert.spv");
 		auto fragShaderCode = readFile("shader.frag.spv");
 
@@ -195,7 +193,7 @@ namespace one {
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-		if (vkCreatePipelineLayout(_logicalDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		if (vkCreatePipelineLayout(_device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 		//*************************************************************************************
@@ -216,7 +214,7 @@ namespace one {
 		pipelineInfo.layout = pipelineLayout;
 		//create renderpass setup info:
 		//can use other renderpasses with this pipeline at runtime as long as they are compatible with this one
-		pipelineInfo.renderPass = renderPass;
+		pipelineInfo.renderPass = _renderPass;
 		pipelineInfo.subpass = 0;
 		//optional
 		// we can create pipelines based on other pipelines to optimize things when switching between them
@@ -224,89 +222,18 @@ namespace one {
 		pipelineInfo.basePipelineIndex = -1;
 
 		//null handle here is pipeline cache data to store to file or temporary memory so next pipeline creations are faster
-		if (vkCreateGraphicsPipelines(_logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+		if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
 
 		//*************************************************************************************
 		//we can destroy them as they have been passed to the pipeline and linked to the GPU already
-		vkDestroyShaderModule(_logicalDevice, fragShaderModule, nullptr);
-		vkDestroyShaderModule(_logicalDevice, vertShaderModule, nullptr);
+		vkDestroyShaderModule(_device, fragShaderModule, nullptr);
+		vkDestroyShaderModule(_device, vertShaderModule, nullptr);
 
-		std::cerr << "pipeline has initiated \n";
+		std::cerr << "vulkan pipeline has initiated \n";
 	}
 
-	//frameBuffer and renderring recommendations:
-	//only put the necessary information that will be processed on framebuffer
-	//pay a lot of attention to load ops and store ops
-	//put all independent work items(same resolution) in the same renderpass
-	//if able use by_region dependencies between subpasses
-
-	//SubPasses are rendering tasks done in some oreder
-	//Subpasses have inputs and outputs / there are shared dependencies between subpasses
-	//example: SubPass0 wrote to depth buffer
-	//			SubPass1 read from depth buffer and wrote to color buffer
-	//			Subpass2 read from color buffer and wrote to framebuffer
-	//The renderpass just specifies the states you need each attachment to be before Subpasses
-	void Pipeline::createRenderPass(VkFormat _swapchainImageFormat) {
-		//one color buffer attachment to one image
-		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = _swapchainImageFormat;
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//no multisampling yet
-		//what to do with data before rendering /ops: preserve previous attchments ; clear them ; dont care about them
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;//about color and depth
-		//what to do after / ops: store them after render to use; discard them
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;//about color and depth
-		//2 next about stencil buffer which is just an extra data for things like shadows or outlines
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		//how pixels of the images aresupposed to be arranged. matches the operation being made at stage
-		//as: color attachments ; present to swapchain ; destination for copy operations
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;//before render pass
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;//right after render finishes
-
-
-		//Subpasses -  rendering operations that depend on frambuffer previous passes(for now just 1)
-		//putting in a single render pass allows vulkan to optimize it
-		VkAttachmentReference colorAttachmentRef{};
-		colorAttachmentRef.attachment = 0;//index in attachment description array(for now just one so index 0)
-		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//layout during subpass
-		VkSubpassDescription subpass{};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		//this is the index used in "location": layout(location = 0) out vec4 outColor
-		subpass.pColorAttachments = &colorAttachmentRef;
-		//other ones needed in the future: 
-		// pInputAttachments(read from shader) 
-		// pResolveAttachments(multisampling color)
-		// pDepthStencilAttachment(depth and Stencil data)
-		// pPreserveAttachments(not used for this subpass but has to be passed on)
-
-		VkRenderPassCreateInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount = 1;
-		renderPassInfo.pAttachments = &colorAttachment;
-		renderPassInfo.subpassCount = 1;
-		renderPassInfo.pSubpasses = &subpass;
-
-		//dependencies are the info about which subpass needs which to be done so the tasks cna be executed and who needs them
-		VkSubpassDependency dependency{};
-		//src must be bigger than dst
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;//source - where it is coming from
-		dependency.dstSubpass = 0;//destination - where it is referring to (we just have one so 0)
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;//pass where they occur
-		dependency.srcAccessMask = 0;//operations to wait on(we are waiting on whole stage itself so imgae to finish being read from on swapchain)
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;//pass where they occur
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;//operations waiting(in this case waiting to write)
-		
-		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;
-
-		if (vkCreateRenderPass(_logicalDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create render pass!");
-		}
-
-	}
 
 	//simply creates a wrapper arround shader byte code
 	VkShaderModule Pipeline::createShaderModule(const std::vector<char>& shaderCode) {
@@ -317,33 +244,26 @@ namespace one {
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 
 		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(_logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		if (vkCreateShaderModule(_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create shader module!");
 		}
 
 		return shaderModule;
 	}
 
-	void Pipeline::destroyPipeline() {
-		if (graphicsPipeline != VK_NULL_HANDLE) {
-			vkDestroyPipeline(_logicalDevice, graphicsPipeline, nullptr);
-			graphicsPipeline = VK_NULL_HANDLE;
+	void Pipeline::destroy() {
+		if (pipeline != VK_NULL_HANDLE) {
+			vkDestroyPipeline(_device, pipeline, nullptr);
+			pipeline = VK_NULL_HANDLE;
 		}
 		if (pipelineLayout != VK_NULL_HANDLE) {
-			vkDestroyPipelineLayout(_logicalDevice, pipelineLayout, nullptr);
+			vkDestroyPipelineLayout(_device, pipelineLayout, nullptr);
 			pipelineLayout = VK_NULL_HANDLE;
-		}
-	}
-	void Pipeline::destroyRenderPass() {
-		if (renderPass != VK_NULL_HANDLE) {
-			vkDestroyRenderPass(_logicalDevice, renderPass, nullptr);
-			renderPass = VK_NULL_HANDLE;
 		}
 	}
 
 	Pipeline::~Pipeline() {
-		destroyPipeline();
-		destroyRenderPass();
+		destroy();
 	}
 
 }

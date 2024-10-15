@@ -13,54 +13,132 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="source\App">
+      <UniqueIdentifier>{00992b1b-ae6c-4731-90b1-9604bbd88c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\App\Framework">
+      <UniqueIdentifier>{14ae3c30-adf0-463f-a23b-9a8415086854}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\App\Framework\Sync">
+      <UniqueIdentifier>{1a51ee28-9cdf-4237-806c-c9f624e59384}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\App\Framework\Device">
+      <UniqueIdentifier>{4f705ca7-a332-44f8-86be-bcec245dfaa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\App\Framework\Commands">
+      <UniqueIdentifier>{643ff9c2-3319-462a-abb5-cb355a71a72a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\App\Framework\Frames">
+      <UniqueIdentifier>{64d4ee4b-820f-499c-a9e4-9d8d5f7d8325}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\App\Framework\Render">
+      <UniqueIdentifier>{21bb16aa-2536-4da6-ad83-4b27505ca7ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Util">
+      <UniqueIdentifier>{8e48ad1d-67c1-4344-81d6-8fb07d168744}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="window.cpp">
+    <ClCompile Include="Window.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="one.cpp">
+    <ClCompile Include="One.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="app.cpp">
-      <Filter>source</Filter>
+    <ClCompile Include="App.cpp">
+      <Filter>source\App</Filter>
     </ClCompile>
-    <ClCompile Include="pipeline.cpp">
-      <Filter>source</Filter>
+    <ClCompile Include="Fence.cpp">
+      <Filter>source\App\Framework\Sync</Filter>
+    </ClCompile>
+    <ClCompile Include="Semaphore.cpp">
+      <Filter>source\App\Framework\Sync</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>source\App\Framework\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>source\App\Framework\Render</Filter>
     </ClCompile>
     <ClCompile Include="Framebuffer.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandPool.cpp">
-      <Filter>source</Filter>
+      <Filter>source\App\Framework\Frames</Filter>
     </ClCompile>
     <ClCompile Include="CommandBuffer.cpp">
-      <Filter>source</Filter>
+      <Filter>source\App\Framework\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPool.cpp">
+      <Filter>source\App\Framework\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Queue.cpp">
+      <Filter>source\App\Framework\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>source\App\Framework\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Instance.cpp">
+      <Filter>source\App\Framework\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>source\App\Framework\Frames</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageView.cpp">
+      <Filter>source\App\Framework\Frames</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="window.h">
+    <ClInclude Include="Window.h">
       <Filter>source</Filter>
     </ClInclude>
-    <ClInclude Include="one.h">
+    <ClInclude Include="One.h">
       <Filter>source</Filter>
     </ClInclude>
-    <ClInclude Include="app.h">
-      <Filter>source</Filter>
+    <ClInclude Include="App.h">
+      <Filter>source\App</Filter>
     </ClInclude>
-    <ClInclude Include="pipeline.h">
-      <Filter>source</Filter>
+    <ClInclude Include="Fence.h">
+      <Filter>source\App\Framework\Sync</Filter>
+    </ClInclude>
+    <ClInclude Include="Semaphore.h">
+      <Filter>source\App\Framework\Sync</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.h">
+      <Filter>source\App\Framework\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>source\App\Framework\Render</Filter>
     </ClInclude>
     <ClInclude Include="Framebuffer.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandPool.h">
-      <Filter>source</Filter>
+      <Filter>source\App\Framework\Frames</Filter>
     </ClInclude>
     <ClInclude Include="CommandBuffer.h">
-      <Filter>source</Filter>
+      <Filter>source\App\Framework\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandPool.h">
+      <Filter>source\App\Framework\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Queue.h">
+      <Filter>source\App\Framework\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>source\App\Framework\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Instance.h">
+      <Filter>source\App\Framework\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>source\App\Framework\Frames</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageView.h">
+      <Filter>source\App\Framework\Frames</Filter>
+    </ClInclude>
+    <ClInclude Include="NonCopyable.h">
+      <Filter>source\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilHeader.h">
+      <Filter>source\Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

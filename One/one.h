@@ -1,9 +1,11 @@
 #pragma once
 
-#include "window.h"
-#include "app.h"
+#include "UtilHeader.h"
+#include "Window.h"
+#include "App.h"
 
 namespace one {
+
 	class One {
 	public:
 		const uint32_t WIDTH = 600;
@@ -12,8 +14,8 @@ namespace one {
 		void run();
 
 	private:
-		Window window{ WIDTH, HEIGHT, "One" };
-		App app{ window };
+		Window* pWindow;
+		App* pApp;
 
 		void initOne();
 		void loop();

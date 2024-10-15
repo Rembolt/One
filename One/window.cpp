@@ -1,12 +1,12 @@
-#include "window.h"
+#include "Window.h"
 
 namespace one {
 
     Window::Window(uint32_t w, uint32_t h, std::string name):WIDTH(w), HEIGHT(h), windowName(name) {
-        initWindow();
+        initialize();
     }
 
-    void Window::initWindow() {
+    void Window::initialize() {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); //will take out later(needs work)
@@ -21,13 +21,19 @@ namespace one {
         return glfwWindowShouldClose(window);
     }
 
-    void Window::createSurface(const VkInstance& instance, VkSurfaceKHR& surface) {// a surface is what connects vulkan to the window, 
+    void Window::initializeSurface(const VkInstance instance, VkSurfaceKHR& surface) {// a surface is what connects vulkan to the window, 
         //it holds the images and the window takes car of making it for each 
         //type of system.
         if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != 
             VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
+    }
+
+    bool Window::destroySurface(const VkInstance instance, VkSurfaceKHR surface) {// a surface is what connects vulkan to the window, 
+        
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        return true;
     }
 
     void Window::getFramebufferSize(int& width, int& height) {

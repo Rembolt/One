@@ -1,40 +1,33 @@
 #pragma once
-#include "vulkan/vulkan.h"
-#include <vector>
+#include "UtilHeader.h"
 
 namespace one {
-	class Pipeline {
+	class Pipeline : NonCopyable{
 
 	public:
 		Pipeline(const Pipeline&) = delete;//cant pass by reference
 		Pipeline& operator=(const Pipeline&) = delete;//cant copy by reference;
 		
-		Pipeline(VkDevice logicalDevice);
+		Pipeline(VkDevice _device, VkRenderPass _renderPass);
 		~Pipeline();
 
 		//constructors
-		void createPipeline();
-		void createRenderPass(VkFormat _swapchainImageFormat);
+		void initialize(VkRenderPass _renderPass);
 
 		//destructors
-		void destroyPipeline();
-		void destroyRenderPass();
+		void destroy();
 
 		//getters & setters
-		inline VkPipeline getGraphicsPipeline(void) const {
-			return graphicsPipeline;
-		}
-
-		inline VkRenderPass getRenderPass(void) const {
-			return renderPass;
+		inline VkPipeline getPipeline(void) const {
+			return pipeline;
 		}
 		
 	private:
 		
-		VkDevice _logicalDevice;
+		VkDevice _device;
 
-		VkPipeline graphicsPipeline;
-		VkRenderPass renderPass;
+		VkPipeline pipeline;
+
 		VkPipelineLayout pipelineLayout;
 
 		VkShaderModule createShaderModule(const std::vector<char>& shaderCode);

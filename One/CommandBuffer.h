@@ -1,22 +1,38 @@
 #pragma once
-#include "vulkan/vulkan.h"
+#include "UtilHeader.h"
 
 namespace one {
-	class CommandBuffer
+	class CommandBuffer : NonCopyable
 	{
 	public:
 
-		CommandBuffer();
+		CommandBuffer(VkDevice _device, VkCommandPool _commandPool);
 		~CommandBuffer();
 
 		void initialize();
 		void destroy();
+		
+		void recordCommandBuffer(VkFramebuffer frameBuffer, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkExtent2D swapChainExtent);
 
+		void reset();
+
+		inline VkCommandBuffer getCommandBuffer() const {
+			return commandBuffer;
+		}
+
+		inline const VkCommandBuffer* getCommandBufferPointer() const {
+			return &commandBuffer;
+		}
+		
 
 	private:
 
-		VkCommandBuffer commandBuffer;
+		VkDevice _device;
+		
+		VkCommandPool _commandPool;
 
+		VkCommandBuffer commandBuffer;
+		
 	};
 }
 

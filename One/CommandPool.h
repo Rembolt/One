@@ -1,6 +1,6 @@
 #pragma once
-
-#include "vulkan/vulkan.h"
+#include "UtilHeader.h"
+#include "CommandBuffer.h"
 
 namespace one {
 	class CommandPool
@@ -8,21 +8,23 @@ namespace one {
 
 	public:
 
-		CommandPool(VkDevice logicalDevice, uint32_t queueIndex);
+		CommandPool(VkDevice _device, uint32_t queueIndex);
 		~CommandPool();
 
 		void initialize(uint32_t queueIndex);
 		void destroy();
 
-		inline VkCommandPool getCommandPoolHandler() const {
+		inline VkCommandPool getCommandPool() const {
 			return commandPool;
 		}
 
 	private:
 
-		VkDevice _logicalDevice;
+		VkDevice _device;
 
 		VkCommandPool commandPool;
+
+		CommandBuffer* commandBuffer;
 	};
 }
 

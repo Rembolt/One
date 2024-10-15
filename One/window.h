@@ -1,11 +1,8 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN //GLFW has its own definitions for vulkan and will call it
-#include <GLFW/glfw3.h>
-
+#include "UtilHeader.h"
 #include <string>
-#include <stdexcept>
-#include <iostream>
+
 namespace one {
 
 	class Window {
@@ -17,11 +14,16 @@ namespace one {
 		Window& operator=(const Window&) = delete;
 		
 		bool shouldClose();
-		void createSurface(const VkInstance& instance, VkSurfaceKHR& surface);
+		void initializeSurface(const VkInstance instance, VkSurfaceKHR& surface);
+		bool destroySurface(const VkInstance instance, VkSurfaceKHR surface);
 		void getFramebufferSize(int& width, int& height);
 
+		GLFWwindow* getWindow() const{
+			return window;
+		}
+
 	private:
-		void initWindow();
+		void initialize();
 
 		const uint32_t WIDTH;
 		const uint32_t HEIGHT;

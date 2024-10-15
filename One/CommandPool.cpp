@@ -1,8 +1,7 @@
 #include "CommandPool.h"
-#include <stdexcept>
 
 namespace one {
-	CommandPool::CommandPool(VkDevice logicalDevice, uint32_t queueIndex): _logicalDevice(logicalDevice) {
+	CommandPool::CommandPool(VkDevice _device, uint32_t queueIndex): _device(_device) {
 		initialize(queueIndex);
 	}
 
@@ -14,15 +13,17 @@ namespace one {
 		poolInfo.queueFamilyIndex = queueIndex;
 		//command pool can only contain commands to a single queue
 
-		if (vkCreateCommandPool(_logicalDevice, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(_device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create command pool!");
 		}
+
+		std::cerr << "vulkan commandpool has initiated \n";
 
 	}
 
 	void CommandPool::destroy() {
 		if (commandPool != VK_NULL_HANDLE) {
-			vkDestroyCommandPool(_logicalDevice, commandPool, nullptr);
+			vkDestroyCommandPool(_device, commandPool, nullptr);
 			commandPool = VK_NULL_HANDLE;
 		}
 	}
